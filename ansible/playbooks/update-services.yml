@@ -1,0 +1,41 @@
+- name: Update every service in the homelab
+  hosts: all
+  become: true
+
+  # this playbook simply includes the individual service playbooks
+  # and runs only the tasks tagged "update"; it can be executed
+  # with `ansible-playbook playbooks/update-services.yml` or with
+  # `--tags update` if you also want to limit to a subset of services.
+
+  tasks:
+    - name: include common container maintenance
+      import_playbook: lxc-common.yml
+      tags:
+        - update
+
+    - name: update beszel
+      import_playbook: lxc-beszel.yml
+      tags:
+        - update
+
+    - name: update rustdesk
+      import_playbook: lxc-rustdesk.yml
+      tags:
+        - update
+
+    - name: update plex
+      import_playbook: lxc-plex.yml
+      tags:
+        - update
+
+    - name: update pterodactyl panel
+      import_playbook: lxc-pterodactyl-panel.yml
+      tags:
+        - update
+
+    - name: update pterodactyl wing
+      import_playbook: vm-pterodactyl-wing.yml
+      tags:
+        - update
+
+    # add additional service playbooks here as they are written

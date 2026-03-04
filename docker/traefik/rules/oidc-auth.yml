@@ -1,0 +1,17 @@
+http:
+  middlewares:
+    oidc-auth:
+      plugin:
+        traefikoidc:
+          providerURL: 'https://auth.{{ env "DOMAIN_NAME" }}'
+          clientID: '{{ env "OIDC_CLIENT_ID" }}'
+          clientSecret: '{{ env "OIDC_CLIENT_SECRET" }}'
+          sessionEncryptionKey: '{{ env "OIDC_SESSION_KEY" }}'
+          callbackURL: /oauth2/callback
+          logoutURL: /oauth2/logout
+          rateLimit: 1000
+          enablePKCE: true
+          cookieDomain: '.{{ env "DOMAIN_NAME" }}'
+          forceHTTPS: true
+          scopes:
+            - roles

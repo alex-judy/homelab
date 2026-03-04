@@ -1,0 +1,88 @@
+- name: Common LXC Container Setup
+  hosts: lxc_containers
+  become: true
+
+  tasks:
+    - name: Wait for system to be ready
+      wait_for_connection:
+        timeout: 300
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      tags:
+        - install
+        - update
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      tags:
+        - install
+        - update
+
+    - name: Install common packages
+      apt:
+        name:
+          - curl
+          - wget
+          - vim
+          - git
+          - htop
+          - net-tools
+          - dnsutils
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - nfs-common # For NFS mounts
+        state: present
+      tags:
+        - install
+        - update
+
+    - name: Set timezone
+      timezone:
+        name: America/New_York # Adjust to your timezone
+      tags:
+        - install
+        - update
+
+    - name: Configure unattended upgrades
+      apt:
+        name:
+          - unattended-upgrades
+          - apt-listchanges
+        state: present
+      tags:
+        - install
+        - update
+
+    - name: Enable unattended upgrades
+      copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+          APT::Periodic::AutocleanInterval "7";
+        mode: "0644"
+      tags:
+        - install
+        - update
+
+    - name: Disable IPv6 (optional, if you don't use it)
+      sysctl:
+        name: "{{ item }}"
+        value: "1"
+        state: present
+        reload: yes
+      loop:
+        - net.ipv6.conf.all.disable_ipv6
+        - net.ipv6.conf.default.disable_ipv6
+      when: disable_ipv6 | default(false)
+      tags:
+        - install
+        - update

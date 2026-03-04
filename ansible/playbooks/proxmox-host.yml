@@ -1,0 +1,74 @@
+- name: Configure iGPU Passthrough for Plex LXC
+  hosts: heimdall
+  become: true
+
+  vars:
+    plex_vmid: "{{ hostvars['plex'].lxc_id }}"
+
+  tasks:
+    - name: Verify VMID is set
+      fail:
+        msg: "plex_vmid must be set. Pass it with -e plex_vmid=<id> or set it in your inventory."
+      when: plex_vmid == ""
+
+    - name: Check LXC config exists
+      stat:
+        path: "/etc/pve/lxc/{{ plex_vmid }}.conf"
+      register: lxc_conf
+
+    - name: Fail if LXC config not found
+      fail:
+        msg: "No LXC config found at /etc/pve/lxc/{{ plex_vmid }}.conf — check your VMID."
+      when: not lxc_conf.stat.exists
+
+    - name: Verify /dev/dri exists on host
+      stat:
+        path: /dev/dri
+      register: dev_dri
+
+    - name: Warn if /dev/dri not found on host
+      debug:
+        msg: "WARNING: /dev/dri not found on Proxmox host — iGPU may not be available or drivers may be missing."
+      when: not dev_dri.stat.exists
+
+    - name: Install Intel GPU tools on host
+      apt:
+        name:
+          - intel-gpu-tools
+          - vainfo
+        state: present
+        update_cache: yes
+
+    - name: Add iGPU passthrough entries to LXC config
+      blockinfile:
+        path: "/etc/pve/lxc/{{ plex_vmid }}.conf"
+        marker: "# {mark} ANSIBLE MANAGED - iGPU passthrough"
+        block: |
+          lxc.cgroup2.devices.allow: c 226:0 rwm
+          lxc.cgroup2.devices.allow: c 226:128 rwm
+          lxc.cgroup2.devices.allow: c 29:0 rwm
+          lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
+          lxc.mount.entry: /dev/fb0 dev/fb0 none bind,optional,create=file
+      register: lxc_config_updated
+
+    - name: Restart LXC container to apply changes
+      command: "pct restart {{ plex_vmid }}"
+      when: lxc_config_updated.changed
+
+    - name: Wait for LXC to come back up
+      wait_for:
+        host: "{{ hostvars['plex'].ansible_host }}"
+        port: 22
+        delay: 5
+        timeout: 60
+      when: lxc_config_updated.changed
+
+    - name: Verify /dev/dri is visible inside LXC
+      command: "pct exec {{ plex_vmid }} -- ls /dev/dri"
+      register: dri_check
+      changed_when: false
+      failed_when: false
+
+    - name: Display iGPU device status
+      debug:
+        msg: "{{ dri_check.stdout_lines if dri_check.rc == 0 else 'WARNING: /dev/dri not visible inside LXC — check passthrough config.' }}"

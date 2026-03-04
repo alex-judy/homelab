@@ -1,0 +1,174 @@
+- name: Install and configure Pterodactyl Wings (VM)
+  hosts: pterodactyl-wing
+  become: true
+
+  roles:
+    - role: artis3n.tailscale
+      # provide an auth key via environment or other variable source
+      tailscale_authkey: "{{ lookup('env','TAILSCALE_AUTHKEY') }}"
+      tailscale_args: "--advertise-tags=tag:gameserver"
+
+  tasks:
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: true
+        upgrade: dist
+      tags:
+        - install
+        - update
+
+    - name: Install curl package
+      apt:
+        name: curl
+        state: present
+      tags:
+        - install
+        - update
+
+    - name: Create /etc/docker directory
+      file:
+        path: /etc/docker
+        state: directory
+      tags:
+        - install
+        - update
+
+    - name: Configure Docker daemon settings
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "log-driver": "journald"
+          }
+      notify: restart docker
+      tags:
+        - install
+        - update
+
+    - name: Install Docker
+      shell: curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+      tags:
+        - install
+        - update
+
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+      tags:
+        - install
+        - update
+
+    - name: Get latest Wings binary
+      shell: |
+        ARCH=$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")
+        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${ARCH}"
+      args:
+        creates: /usr/local/bin/wings
+      tags:
+        - install
+        - update
+      notify:
+        - restart wings
+
+    - name: Make Wings binary executable
+      file:
+        path: /usr/local/bin/wings
+        mode: "0755"
+      tags:
+        - install
+        - update
+
+    - name: Check if Wings config exists
+      stat:
+        path: /etc/pterodactyl/config.yml
+      register: wings_config
+      tags:
+        - install
+        - update
+
+    - name: Warn if Wings config is missing
+      debug:
+        msg: |
+          WARNING: /etc/pterodactyl/config.yml does not exist!
+          This file must be generated from your Pterodactyl Panel:
+          1. Go to your Panel administrative view
+          2. Select Nodes from the sidebar
+          3. Create a new node or use Generate Token on existing node
+          4. Copy the config.yml content and paste it into /etc/pterodactyl/config.yml
+          Wings will not start without this configuration file.
+      when: not wings_config.stat.exists
+      tags:
+        - install
+        - update
+
+    - name: Create Pterodactyl configuration directory
+      file:
+        path: /etc/pterodactyl
+        state: directory
+      tags:
+        - install
+        - update
+
+    - name: Create Wings runtime directory
+      file:
+        path: /var/run/wings
+        state: directory
+      tags:
+        - install
+        - update
+
+    - name: Copy Wings systemd service file
+      copy:
+        dest: /etc/systemd/system/wings.service
+        content: |
+          [Unit]
+          Description=Pterodactyl Wings Daemon
+          After=docker.service
+          Requires=docker.service
+          PartOf=docker.service
+
+          [Service]
+          User=root
+          WorkingDirectory=/etc/pterodactyl
+          LimitNOFILE=4096
+          PIDFile=/var/run/wings/daemon.pid
+          ExecStart=/usr/local/bin/wings
+          Restart=on-failure
+          StartLimitInterval=180
+          StartLimitBurst=30
+          RestartSec=5s
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: reload systemd
+      tags:
+        - install
+        - update
+
+    - name: Enable and start Wings service
+      systemd:
+        name: wings
+        enabled: true
+        state: started
+      tags:
+        - install
+        - update
+
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted
+
+    - name: restart wings
+      systemd:
+        name: wings
+        state: restarted
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: true

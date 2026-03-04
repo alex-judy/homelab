@@ -1,0 +1,201 @@
+- name: Setup Tailscale VPN LXC
+  hosts: tailscale
+  become: true
+
+  vars:
+    tailscale_hostname: "homelab-tailscale"
+    advertise_routes: "10.0.0.0/8"
+    advertise_exit_node: true
+    accept_routes: true
+    accept_dns: false
+    ssh_enabled: true
+
+  tasks:
+    - name: Gather OS facts
+      setup:
+        gather_subset:
+          - distribution
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Create keyrings directory
+      file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download Tailscale GPG key
+      get_url:
+        url: https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}/{{ ansible_distribution_release }}.noarmor.gpg
+        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        mode: "0644"
+      register: gpg_key_download
+      failed_when: false
+
+    - name: Fallback - Download Tailscale GPG key (Ubuntu Jammy)
+      get_url:
+        url: https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg
+        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        mode: "0644"
+      when: gpg_key_download.failed | default(false)
+
+    - name: Add Tailscale repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main"
+        state: present
+        filename: tailscale
+      register: repo_add
+      failed_when: false
+
+    - name: Fallback - Add Tailscale repository (Ubuntu Jammy)
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu jammy main"
+        state: present
+        filename: tailscale
+      when: repo_add.failed | default(false)
+
+    - name: Install Tailscale
+      apt:
+        name: tailscale
+        state: present
+        update_cache: yes
+
+    - name: Enable and start Tailscaled service
+      systemd:
+        name: tailscaled
+        enabled: yes
+        state: restarted
+
+    - name: Wait for tailscaled to initialize
+      pause:
+        seconds: 5
+
+    - name: Check if Tailscale is already authenticated
+      command: tailscale status --json
+      register: tailscale_status
+      failed_when: false
+      changed_when: false
+
+    - name: Set authentication status
+      set_fact:
+        is_authenticated: >-
+          {{
+            (tailscale_status.rc == 0) and
+            (tailscale_status.stdout | length > 0) and
+            ((tailscale_status.stdout | from_json).BackendState == 'Running')
+          }}
+
+    - name: Build Tailscale up command
+      set_fact:
+        tailscale_cmd: >-
+          tailscale up
+          {% if lookup('env', 'TAILSCALE_AUTH_KEY') != "" %}--authkey={{ lookup('env', 'TAILSCALE_AUTH_KEY') }}{% endif %}
+          {% if tailscale_hostname != "" %}--hostname={{ tailscale_hostname }}{% endif %}
+          {% if advertise_routes != "" %}--advertise-routes={{ advertise_routes }}{% endif %}
+          {% if advertise_exit_node %}--advertise-exit-node{% endif %}
+          {% if accept_routes %}--accept-routes{% endif %}
+          --accept-dns={{ accept_dns | lower }}
+          {% if ssh_enabled %}--ssh{% endif %}
+
+    - name: Debug - Show authentication status
+      debug:
+        msg: "Is authenticated: {{ is_authenticated }}"
+
+    - name: Debug - Show tailscale command
+      debug:
+        msg: "Command to run: {{ tailscale_cmd }}"
+      when: not is_authenticated
+
+    - name: Start Tailscale and authenticate
+      command: "{{ tailscale_cmd }}"
+      when: not is_authenticated
+      register: tailscale_up
+
+    - name: Debug - Show tailscale up result
+      debug:
+        var: tailscale_up
+      when: not is_authenticated
+
+    - name: Enable IP forwarding (if advertising routes or exit node)
+      sysctl:
+        name: "{{ item }}"
+        value: "1"
+        state: present
+        sysctl_file: /etc/sysctl.d/99-tailscale.conf
+        reload: yes
+      loop:
+        - net.ipv4.ip_forward
+        - net.ipv6.conf.all.forwarding
+      when: advertise_routes != "" or advertise_exit_node
+
+    - name: Wait for Tailscale to be fully connected
+      command: tailscale status --json
+      register: wait_status
+      until:
+        - wait_status.rc == 0
+        - (wait_status.stdout | from_json).BackendState == 'Running'
+      retries: 10
+      delay: 2
+      changed_when: false
+      failed_when: false
+
+    - name: Get Tailscale status
+      command: tailscale status
+      register: final_status
+      changed_when: false
+      failed_when: false
+
+    - name: Get Tailscale IPv4
+      command: tailscale ip -4
+      register: tailscale_ipv4
+      changed_when: false
+      failed_when: false
+
+    - name: Get Tailscale IPv6
+      command: tailscale ip -6
+      register: tailscale_ipv6
+      changed_when: false
+      failed_when: false
+
+    - name: Display Tailscale information
+      debug:
+        msg:
+          - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          - "✓ Tailscale installed and configured!"
+          - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          - "Hostname: {{ tailscale_hostname }}"
+          - "IPv4: {{ tailscale_ipv4.stdout if tailscale_ipv4.rc == 0 else 'Not available' }}"
+          - "IPv6: {{ tailscale_ipv6.stdout if tailscale_ipv6.rc == 0 else 'Not available' }}"
+          - ""
+          - "{% if advertise_routes != '' %}Advertised Routes: {{ advertise_routes }}{% endif %}"
+          - "{% if advertise_exit_node %}Exit Node: Enabled{% endif %}"
+          - "{% if ssh_enabled %}Tailscale SSH: Enabled{% endif %}"
+          - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    - name: Create Tailscale status check script
+      copy:
+        dest: /usr/local/bin/tailscale-check
+        mode: "0755"
+        content: |
+          #!/bin/bash
+          echo "Tailscale Status:"
+          tailscale status
+          echo ""
+          echo "Tailscale IPs:"
+          echo "  IPv4: $(tailscale ip -4 2>/dev/null || echo 'N/A')"
+          echo "  IPv6: $(tailscale ip -6 2>/dev/null || echo 'N/A')"
+          echo ""
+          echo "Connection Info:"
+          tailscale netcheck
