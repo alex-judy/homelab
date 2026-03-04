@@ -84,7 +84,7 @@ services:
       DOCKER_HOST: tcp://socket-proxy:2375
       LISTEN: 45876
       KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXaHqH9maCEFlC8h76KpfVZLDSmg8Vbg5jXjP7Xpod6"
-      TOKEN: 5fe-8b85f3983e8-55d4-5613703e58
+      TOKEN: ${BESZEL_AGENT_TOKEN}
       HUB_URL: http://10.0.10.12:8090
       INTEL_GPU_DEVICE: drm:/dev/dri/card0
 
@@ -98,7 +98,7 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - TZ=${TZ:-UTC}
-      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-db:5432/tracearr
+      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD}@tracearr-db:5432/tracearr
       - REDIS_URL=redis://tracearr-redis:6379
       - JWT_SECRET=${TRACEARR_JWT_SECRET}
       - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
@@ -140,7 +140,7 @@ services:
     command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
     environment:
       - POSTGRES_USER=tracearr
-      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}
+      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD}
       - POSTGRES_DB=tracearr
     volumes:
       - $DOCKER_DIR/data/tracearr-db:/home/postgres/pgdata/data
