@@ -1,0 +1,17 @@
+http:
+  routers:
+    rustdesk-rtr:
+      entryPoints:
+        - https
+      rule: Host(`hbbr.{{ env "DOMAIN_NAME" }}`)
+      service: rustdesk-svc
+      middlewares:
+        - chain-oauth
+      tls:
+        certresolver: cloudflare
+  services:
+    rustdesk-svc:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://10.0.10.11:21114/

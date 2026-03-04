@@ -1,0 +1,42 @@
+# http:
+#   routers:
+#     pterodactyl-node-rtr:
+#       entryPoints:
+#         - https
+#       rule: Host(`games-node-0.louhome.xyz`)
+#       service: pterodactyl-node-svc
+#       tls:
+#         certresolver: cloudflare
+
+#   services:
+#     pterodactyl-node-svc:
+#       loadBalancer:
+#         servers:
+#           - url: http://10.0.10.253:8443
+
+# tcp:
+#   routers:
+#     pterodactyl-node-tcp-rtr:
+#       entryPoints:
+#         - tcp
+#       service: pterodactyl-node-tcp-svc
+#       # rule: "HostSNI(`games-node-0.louhome.xyz`)"  # Only if using TLS over TCP
+
+#   services:
+#     pterodactyl-node-tcp-svc:
+#       loadBalancer:
+#         servers:
+#           - address: "10.0.10.253:21000"
+
+# udp:
+#   routers:
+#     pterodactyl-node-udp-rtr:
+#       entryPoints:
+#         - udp
+#       service: pterodactyl-node-udp-svc
+
+#   services:
+#     pterodactyl-node-udp-svc:
+#       loadBalancer:
+#         servers:
+#           - address: "10.0.10.253:21000"

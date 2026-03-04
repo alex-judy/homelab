@@ -1,0 +1,23 @@
+# Defaults for LXC containers
+beszel_web_port: 8090
+beszel_hub_port: 45876
+beszel_install_dir: /opt/beszel
+beszel_data_dir: /var/lib/beszel
+
+rustdesk_install_server: true
+rustdesk_install_dir: /opt/rustdesk
+
+pterodactyl_panel_port: 8443
+pterodactyl_install_dir: /opt/pterodactyl
+pterodactyl_db_name: pterodactyl
+pterodactyl_db_user: pterodactyl
+
+# mountable TrueNAS exports for containers.  containers can override or
+# extend this list if they only need a subset.
+# each item must define `src` (NFS server:path) and `mount_point` within the
+# container.
+truenas_shares:
+  - src: "{{ truenas_nfs_server }}:{{ truenas_media_share }}"
+    mount_point: /mnt/media
+  - src: "{{ truenas_nfs_server }}:{{ truenas_downloads_share }}"
+    mount_point: /mnt/downloads

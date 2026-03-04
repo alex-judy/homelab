@@ -1,0 +1,175 @@
+services:
+  ## Dozzle - Real-time Docker Log Viewer
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: always
+    networks:
+      - traefik_proxy
+      - socket_proxy
+    ports:
+      - 3661:8080
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_FILTER: "status=running"
+      # DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
+      DOCKER_HOST: tcp://socket-proxy:2375
+    # volumes:
+    #  - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dozzle-rtr.entrypoints=https"
+      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.${DOMAIN_NAME}`)"
+      ## Middlewares
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
+      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
+
+  ## Glances - Container and System Monitor
+  glances:
+    container_name: glances
+    image: nicolargo/glances:3.3.0.1
+    pid: host
+    restart: always
+    networks:
+      - traefik_proxy
+      - socket_proxy
+    ports:
+      - 61208:61208
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKER_DIR/configs/glances:/glances/conf # Use this if you want to add a glances.conf file
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GLANCES_OPT=--webserver
+      - TZ
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.glances-rtr.entrypoints=https"
+      - "traefik.http.routers.glances-rtr.rule=Host(`glances.${DOMAIN_NAME}`)"
+      ## Middlewares
+      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.glances-rtr.service=glances-svc"
+      - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
+
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - $DOCKER_DIR/data/beszel-agent:/var/lib/beszel-agent
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+      # monitor other disks / partitions by mounting a folder in /extra-filesystems
+      - /mnt/downloads/.beszel:/extra-filesystems/Downloads:ro
+      - /mnt/media/.beszel:/extra-filesystems/Media:ro
+      - /mnt/nfs/.beszel:/extra-filesystems/NFS:ro
+    cap_add:
+      - CAP_PERFMON
+    security_opt:
+      - apparmor:unconfined
+    healthcheck:
+      test: ["CMD", "/agent", "health"]
+      interval: 120s
+    environment:
+      DOCKER_HOST: tcp://socket-proxy:2375
+      LISTEN: 45876
+      KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXaHqH9maCEFlC8h76KpfVZLDSmg8Vbg5jXjP7Xpod6"
+      TOKEN: 5fe-8b85f3983e8-55d4-5613703e58
+      HUB_URL: http://10.0.10.12:8090
+      INTEL_GPU_DEVICE: drm:/dev/dri/card0
+
+  tracearr:
+    image: ghcr.io/connorgallopo/tracearr:latest
+    container_name: tracearr
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - TZ=${TZ:-UTC}
+      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-db:5432/tracearr
+      - REDIS_URL=redis://tracearr-redis:6379
+      - JWT_SECRET=${TRACEARR_JWT_SECRET}
+      - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      # - DATABASE_POOL_MAX=50  # Database connection pool size (default: 50)
+    depends_on:
+      tracearr-db:
+        condition: service_healthy
+      tracearr-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tracearr-rtr.entrypoints=https"
+      - "traefik.http.routers.tracearr-rtr.rule=Host(`tracearr.${DOMAIN_NAME}`)"
+      ## Middlewares
+      - "traefik.http.routers.tracearr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.tracearr-rtr.service=tracearr-svc"
+      - "traefik.http.services.tracearr-svc.loadbalancer.server.port=3000"
+
+  tracearr-db:
+    # TimescaleDB HA with PostgreSQL 18 and Toolkit
+    # PostgreSQL 18 features: AIO for 3x I/O performance, UUIDv7, temporal constraints
+    # Note: ~1.5GB image size (includes Patroni, backup tools, many extensions)
+    image: timescale/timescaledb:2.25.0-pg16
+    container_name: tracearr-db
+    shm_size: 512mb # Required for PostgreSQL shared memory (increase for large imports)
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536 # TimescaleDB chunks require many file descriptors
+    # Allow unlimited tuple decompression for migrations on compressed hypertables
+    # Increase lock table size for large imports (Tautulli imports with many TimescaleDB chunks)
+    command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
+    environment:
+      - POSTGRES_USER=tracearr
+      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}
+      - POSTGRES_DB=tracearr
+    volumes:
+      - $DOCKER_DIR/data/tracearr-db:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracearr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+
+  tracearr-redis:
+    image: redis:8-alpine
+    container_name: tracearr-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - $DOCKER_DIR/data/tracearr-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+
+networks:
+  traefik_proxy:
+    external: true
+  socket_proxy:
+    external: true

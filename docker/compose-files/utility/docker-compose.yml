@@ -1,0 +1,96 @@
+x-defaults: &default-settings
+  restart: unless-stopped
+  networks:
+    - traefik_proxy
+  security_opt:
+    - no-new-privileges:true
+
+services:
+
+  ########## Docker Utilities ##########
+
+  ## Watchtower
+  # https://hub.docker.com/r/containrrr/watchtower
+  # 
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    restart: always
+    networks:
+      - traefik_proxy
+      - socket_proxy
+    environment: 
+      # Set to true for testing configuration changes
+      WATCHTOWER_RUN_ONCE: false 
+      DOCKER_HOST: tcp://socket-proxy:2375
+      # Run at 1AM every Monday
+      WATCHTOWER_SCHEDULE: "0 0 1 * * 1" 
+      TZ: TZ
+      WATCHTOWER_CLEANUP: true 
+      WATCHTOWER_DEBUG: true     
+      WATCHTOWER_NOTIFICATION_REPORT: true
+      WATCHTOWER_NOTIFICATION_URL: ${DISCORD_WATCHTOWER_WEBHOOK}
+      WATCHTOWER_NOTIFICATION_TEMPLATE: |-
+          {{- if .Report -}}
+            {{- with .Report -}}
+          {{len .Scanned}} Scanned, {{len .Updated}} Updated, {{len .Failed}} Failed
+                {{- range .Updated}}
+          - {{.Name}} ({{.ImageName}}): {{.CurrentImageID.ShortID}} updated to {{.LatestImageID.ShortID}}
+                {{- end -}}
+                {{- range .Fresh}}
+          - {{.Name}} ({{.ImageName}}): {{.State}}
+              {{- end -}}
+              {{- range .Skipped}}
+          - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
+              {{- end -}}
+              {{- range .Failed}}
+          - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
+              {{- end -}}
+            {{- end -}}
+          {{- else -}}
+            {{range .Entries -}}{{.Message}}{{"\n"}}{{- end -}}
+          {{- end -}}
+
+  ## Who Am I?? - Show Headers
+  whoami:
+    <<: *default-settings
+    container_name: whoami
+    image: traefik/whoami:latest
+    environment:
+      - WHOAMI_NAME
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.whoami-rtr.entrypoints=https"
+      - "traefik.http.routers.whoami-rtr.rule=Host(`whoami.${DOMAIN_NAME}`)"
+      ## Middlewares
+      # - "traefik.http.routers.whoami-rtr.middlewares=cloudflare-real-ip@file, crowdsec@file"
+      - "traefik.http.routers.whoami-rtr.middlewares=oidc-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.whoami-rtr.service=whoami-svc"
+      - "traefik.http.services.whoami-svc.loadbalancer.server.port=80"
+
+  ## OpenSpeedtest
+  speedtest:
+    <<: *default-settings
+    container_name: speedtest
+    image: openspeedtest/latest
+    ports:
+      - '3010:3000'
+      - '3011:3001'
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.speedtest-rtr.entrypoints=https"
+      - "traefik.http.routers.speedtest-rtr.rule=Host(`speedtest.${DOMAIN_NAME}`)"
+      ## Middlewares
+      - "traefik.http.routers.speedtest-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.speedtest-rtr.service=speedtest-svc"
+      - "traefik.http.services.speedtest-svc.loadbalancer.server.port=3000"
+      
+networks:
+  traefik_proxy:
+    external: true
+  socket_proxy:
+    external: true

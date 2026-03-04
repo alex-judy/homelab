@@ -1,0 +1,46 @@
+# Main playbook to configure all resources
+- name: Configure all LXC containers
+  hosts: lxc_containers
+  gather_facts: true
+
+  tasks:
+    - name: Display starting message
+      debug:
+        msg: "Starting configuration of {{ inventory_hostname }}"
+
+# Common setup for all containers
+- import_playbook: lxc-common.yml
+
+# Service-specific playbooks
+- import_playbook: lxc-tailscale.yml
+  tags: ["tailscale"]
+
+- import_playbook: lxc-plex.yml
+  tags: ["plex"]
+
+# Note: rustdesk and beszel playbooks
+- import_playbook: lxc-rustdesk.yml
+  tags: ["rustdesk"]
+
+- import_playbook: lxc-beszel.yml
+  tags: ["beszel"]
+
+- import_playbook: vm-home-assistant.yml
+  tags: ["homeassistant"]
+
+- name: Configuration complete
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Display completion message
+      debug:
+        msg:
+          - "============================================"
+          - "All LXC containers configured successfully!"
+          - "============================================"
+          - ""
+          - "Next steps:"
+          - "1. Verify Plex GPU access: ssh plex 'ls -l /dev/dri'"
+          - "2. Check VPN connection: ssh downloads 'docker exec gluetun wget -qO- https://ipinfo.io/ip'"
+          - "3. Configure Cloudflare Tunnel routes in Zero Trust dashboard"
+          - "4. Test access to services via your domain"

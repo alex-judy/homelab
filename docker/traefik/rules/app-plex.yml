@@ -1,0 +1,57 @@
+http:
+  routers:
+    plex-rtr:
+      entryPoints:
+        - https
+      rule: Host(`plex.{{ env "DOMAIN_NAME" }}`)
+      priority: 10
+      middlewares:
+        - plex-headers
+      service: plex-svc
+      tls: {}
+
+    plex-web-rtr:
+      entryPoints:
+        - https
+      rule: Host(`plex.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/web/`)
+      priority: 20
+      middlewares:
+        - chain-noauth
+        - plex-headers
+      service: plex-svc
+      tls: {}
+
+  middlewares:
+    plex-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+        accessControlAllowOriginList:
+          - https://{{ env "DOMAIN_NAME" }}
+        accessControlMaxAge: 100
+        addVaryHeader: true
+        hostsProxyHeaders:
+          - X-Forwarded-Host
+          - X-Forwarded-For # Add this
+          - X-Real-IP # Add this
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        customFrameOptionsValue: allow-from https://{{ env "DOMAIN_NAME" }}
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: same-origin
+        customRequestHeaders: # Add this entire block
+          X-Forwarded-For: "" # Pass through, don't override
+          X-Real-IP: "" # Pass through, don't override
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+  services:
+    plex-svc:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.10.13:32400"

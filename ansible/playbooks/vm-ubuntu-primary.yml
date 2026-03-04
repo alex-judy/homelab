@@ -1,0 +1,471 @@
+- name: Setup Docker on Ubuntu Primary VM
+  hosts: ubuntu-server-primary
+  become: true
+
+  vars:
+    docker_dir: /opt/docker
+    compose_dir: "{{ docker_dir }}/compose"
+    configs_dir: "{{ docker_dir }}/configs"
+    traefik_dir: "{{ docker_dir }}/traefik"
+    docker_user: ubuntu
+    # TRUENAS shares to mount (list of {src, mount_point}); leave empty to skip
+    truenas_shares: []
+
+    # Doppler secret management
+    doppler_enabled: "{{ doppler_enabled | default(false) }}"
+    doppler_token: "{{ doppler_token | default('') }}" # typically provided via vault or env
+    doppler_project: "{{ doppler_project | default('') }}"
+    doppler_config: "{{ doppler_config | default('default') }}"
+
+    # Environment variables for docker-compose files
+    DOCKER_DIR: "{{ docker_dir }}"
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "UTC"
+    DOMAIN_NAME: "example.com" # Change this to your domain
+
+  pre_tasks:
+    - name: Wait for system to be ready
+      wait_for_connection:
+        timeout: 300
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Doppler CLI (optional)
+      shell: |
+        curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
+      args:
+        creates: /usr/local/bin/doppler
+      when: doppler_enabled
+
+    - name: Configure Doppler CLI
+      shell: doppler setup --token {{ doppler_token }}
+      when:
+        - doppler_enabled
+        - doppler_token != ""
+      no_log: true
+
+    - name: Ensure TRUENAS share mount points exist
+      file:
+        path: "{{ item.mount_point }}"
+        state: directory
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: "0755"
+      loop: "{{ truenas_shares }}"
+      when: truenas_shares | length > 0
+      ignore_errors: true
+
+    - name: Mount TRUENAS shares (optional)
+      mount:
+        path: "{{ item.mount_point }}"
+        src: "{{ item.src }}"
+        fstype: nfs
+        opts: rw,vers=3
+        state: mounted
+      loop: "{{ truenas_shares }}"
+      when: truenas_shares | length > 0
+      ignore_errors: true
+
+  tasks:
+    # Docker installation
+    - name: Install Docker prerequisites
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Install Docker Compose (standalone)
+      shell: |
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+      args:
+        creates: /usr/local/bin/docker-compose
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    # Directory structure
+    - name: Create Docker directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: "0755"
+      loop:
+        - "{{ docker_dir }}"
+        - "{{ compose_dir }}"
+        - "{{ configs_dir }}"
+        - "{{ traefik_dir }}"
+
+    # Copy docker-compose files
+    - name: Copy docker-compose files
+      synchronize:
+        src: /root/homelab/docker/compose-files/
+        dest: "{{ compose_dir }}/"
+        archive: true
+        recursive: true
+        delete: no
+        owner: no
+        group: no
+        perms: no
+      delegate_to: localhost
+
+    - name: Fix permissions on compose files
+      file:
+        path: "{{ compose_dir }}"
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: "0755"
+        recurse: true
+
+    # Copy Traefik configuration
+    - name: Copy Traefik rules
+      synchronize:
+        src: /root/homelab/docker/traefik/
+        dest: "{{ traefik_dir }}/"
+        archive: true
+        recursive: true
+        delete: no
+        owner: no
+        group: no
+        perms: no
+      delegate_to: localhost
+
+    - name: Fix permissions on Traefik files
+      file:
+        path: "{{ traefik_dir }}"
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: "0755"
+        recurse: true
+
+    # Create environment file for docker-compose
+    - name: Create .env file for docker-compose
+      copy:
+        content: |
+          # Docker and System Configuration
+          {% if doppler_enabled %}# additional secrets are injected by Doppler{% endif %}
+          DOCKER_DIR={{ docker_dir }}
+          PUID={{ PUID }}
+          PGID={{ PGID }}
+          TZ={{ TZ }}
+          DOMAIN_NAME={{ DOMAIN_NAME }}
+
+          # Add additional static environment variables here as needed
+          # Database credentials, API keys, etc.
+        dest: "{{ docker_dir }}/.env"
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: "0600"
+
+    - name: Populate doppler secrets into .env (when enabled)
+      shell: |
+        doppler run --project {{ doppler_project }} --config {{ doppler_config }} -- env >> "{{ docker_dir }}/.env"
+      when:
+        - doppler_enabled
+        - doppler_project != ""
+      args:
+        executable: /bin/bash
+      no_log: true
+
+    # Create networks
+    - name: Create Docker networks
+      docker_network:
+        name: "{{ item }}"
+        driver: bridge
+      loop:
+        - traefik_proxy
+        - socket_proxy
+        - db_network
+        - download_network
+      ignore_errors: true
+
+    # Deploy compose stacks
+    - name: Create docker-compose systemd units directory
+      file:
+        path: /etc/systemd/system/docker-compose@.service.d
+        state: directory
+        mode: "0755"
+
+    - name: Deploy network stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/network"
+        project_name: network
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: network_deploy
+      when: not doppler_enabled
+
+    - name: Deploy management stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/management"
+        project_name: management
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: management_deploy
+      when: not doppler_enabled
+
+    - name: Deploy monitoring stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/monitoring"
+        project_name: monitoring
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: monitoring_deploy
+      when: not doppler_enabled
+
+    - name: Deploy security stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/security"
+        project_name: security
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: security_deploy
+      when: not doppler_enabled
+
+    - name: Deploy media stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/media"
+        project_name: media
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: media_deploy
+      when: not doppler_enabled
+
+    - name: Deploy PVR stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/pvr"
+        project_name: pvr
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: pvr_deploy
+      when: not doppler_enabled
+
+    - name: Deploy indexers stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/indexers"
+        project_name: indexers
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: indexers_deploy
+      when: not doppler_enabled
+
+    - name: Deploy BitTorrent stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/bittor"
+        project_name: bittor
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: bittor_deploy
+      when: not doppler_enabled
+
+    - name: Deploy utility stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/utility"
+        project_name: utility
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: utility_deploy
+      when: not doppler_enabled
+
+    - name: Deploy other stack
+      docker_compose_v2:
+        project_src: "{{ compose_dir }}/other"
+        project_name: other
+        state: present
+        files:
+          - docker-compose.yml
+      environment:
+        DOCKER_DIR: "{{ docker_dir }}"
+        PUID: "{{ PUID }}"
+        PGID: "{{ PGID }}"
+        TZ: "{{ TZ }}"
+        DOMAIN_NAME: "{{ DOMAIN_NAME }}"
+      ignore_errors: true
+      register: other_deploy
+      when: not doppler_enabled
+
+    # if Doppler is enabled the compose invocation needs a prefix, use shell tasks instead
+    - name: Deploy all stacks with Doppler wrapper
+      shell: |
+        doppler run --project {{ doppler_project }} --config {{ doppler_config }} -- \
+          /usr/bin/docker compose -f {{ compose_dir }}/{{ item }}/docker-compose.yml up -d
+      loop:
+        - network
+        - management
+        - monitoring
+        - security
+        - media
+        - pvr
+        - indexers
+        - bittor
+        - utility
+        - other
+      when: doppler_enabled
+      ignore_errors: true
+      register: doppler_deploy_results
+
+  post_tasks:
+    - name: Get Docker version
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Get Docker Compose version
+      command: docker-compose --version
+      register: compose_version
+      changed_when: false
+
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "Docker Installation Complete!"
+          - "{{ docker_version.stdout }}"
+          - "{{ compose_version.stdout }}"
+          - ""
+          - "Docker Configuration:"
+          - "  Install directory: {{ docker_dir }}"
+          - "  Compose files: {{ compose_dir }}"
+          - "  Config directory: {{ configs_dir }}"
+          - "  Traefik rules: {{ traefik_dir }}"
+          - ""
+          - "Environment Variables:"
+          - "  DOCKER_DIR={{ docker_dir }}"
+          - "  PUID={{ PUID }}"
+          - "  PGID={{ PGID }}"
+          - "  TZ={{ TZ }}"
+          - "  DOMAIN_NAME={{ DOMAIN_NAME }}"
+          - ""
+          - "Docker Networks Created:"
+          - "  - traefik_proxy"
+          - "  - socket_proxy"
+          - "  - db_network"
+          - "  - download_network"
+          - ""
+          - "Deployed Stacks:"
+          - "  - network (Status: {{ 'Success' if network_deploy is not failed else 'Check logs' }})"
+          - "  - management (Status: {{ 'Success' if management_deploy is not failed else 'Check logs' }})"
+          - "  - monitoring (Status: {{ 'Success' if monitoring_deploy is not failed else 'Check logs' }})"
+          - "  - security (Status: {{ 'Success' if security_deploy is not failed else 'Check logs' }})"
+          - "  - media (Status: {{ 'Success' if media_deploy is not failed else 'Check logs' }})"
+          - "  - pvr (Status: {{ 'Success' if pvr_deploy is not failed else 'Check logs' }})"
+          - "  - indexers (Status: {{ 'Success' if indexers_deploy is not failed else 'Check logs' }})"
+          - "  - bittor (Status: {{ 'Success' if bittor_deploy is not failed else 'Check logs' }})"
+          - "  - utility (Status: {{ 'Success' if utility_deploy is not failed else 'Check logs' }})"
+          - "  - other (Status: {{ 'Success' if other_deploy is not failed else 'Check logs' }})"
+          - ""
+          - "IMPORTANT: Update DOMAIN_NAME variable in playbook vars for Traefik routing!"
+          - "Doppler secrets: {{ 'enabled' if doppler_enabled else 'disabled' }}"
+          - "View running containers: docker ps"
+          - "Check logs: docker logs <container_name>"
