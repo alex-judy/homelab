@@ -1,0 +1,120 @@
+# =============================================================================
+# TERRAFORM
+# =============================================================================
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/**/*.tfstate
+terraform/**/*.tfstate.backup
+terraform/**/*.tfstate.*.backup
+terraform/.terraform.tfstate.lock.info
+terraform/tfplan
+terraform/crash.log
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+*.tfvars
+.terraform
+
+# =============================================================================
+# ANSIBLE
+# =============================================================================
+ansible/*.retry
+ansible/.vault_pass
+ansible/**/*.retry
+ansible/roles/**/molecule/.molecule
+ansible/roles/**/molecule/.pytest_cache
+ansible/roles/requirements.yml.lock
+*.log
+
+# =============================================================================
+# SECRETS & CREDENTIALS
+# =============================================================================
+.env
+.env.local
+.env.*.local
+.env.*.vault
+secrets.yml
+*/secrets.yml
+**/secrets.yml
+vars/secrets.yml
+vars/tailscale-config.yml
+*.vault
+*.pem
+*.key
+id_rsa*
+*.token
+.vault_pass
+.vault_password
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+docker/.env
+docker/**/.env
+.dockerignore
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =============================================================================
+# EDITOR & IDE
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.*.sw[a-z]
+*.vim
+.vscode-server/
+.devcontainer/
+
+# =============================================================================
+# CI/CD
+# =============================================================================
+.woodpecker/
+.github/workflows/local-*
+
+# =============================================================================
+# LOCAL DEVELOPMENT
+# =============================================================================
+local/
+.local/
+tmp/
+temp/
+build/
+dist/
+*.zip
+*.tar.gz
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+ENV/
+
+# =============================================================================
+# NODE
+# =============================================================================
+node_modules/
+npm-debug.log
+yarn-error.log
+# Added by ggshield
+.cache_ggshield
