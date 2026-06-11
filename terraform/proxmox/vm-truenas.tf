@@ -34,17 +34,16 @@ resource "proxmox_virtual_environment_vm" "truenas" {
   disk {
     datastore_id = "local-lvm"
     interface    = "scsi0"
-    size         = 32
+    size         = 50
     iothread     = true
     discard      = "on"
   }
 
-  # Physical disk passthroughs - these are managed outside Terraform
-  # scsi1: /dev/disk/by-id/ata-WDC_WD181KFGX-68AFPN0_5BH2LPKR
-  # scsi2: /dev/disk/by-id/ata-WDC_WD181KFGX-68AFPN0_4MH2DXAV
-  # scsi3: /dev/disk/by-id/usb-Sabrent_enclosure_012345679149-0:0
-  # scsi4: /dev/disk/by-id/ata-WDC_WD181KFGX-68CKWN0_PNG28XTP
-  # scsi5: /dev/disk/by-id/ata-WDC_WD181KFGX-68CKWN0_T0G0PJLF
+  initialization {
+    user_account {
+      keys = local.ssh_public_keys
+    }
+  }
 
   network_device {
     bridge      = "vmbr0"

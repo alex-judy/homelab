@@ -1,0 +1,27 @@
+{
+    "extends": [
+        "config:base"
+    ],
+    "timezone": "UTC",
+    "schedule": [
+        "after 5am every day"
+    ],
+    "enabledManagers": [
+        "dockercompose"
+    ],
+    "fileMatch": [
+        "(^|/)docker-compose\\.ya?ml$"
+    ],
+    "packageRules": [
+        {
+            "matchDatasources": [
+                "docker"
+            ],
+            "matchPackagePatterns": [
+                "*"
+            ],
+            "groupName": "docker container updates",
+            "groupSlug": "docker-container-updates"
+        }
+    ]
+}

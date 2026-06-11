@@ -39,14 +39,27 @@
           - lsb-release
           - software-properties-common
           - nfs-common # For NFS mounts
+          - tzdata
+          - util-linux
         state: present
       tags:
         - install
         - update
 
     - name: Set timezone
-      timezone:
-        name: America/New_York # Adjust to your timezone
+      file:
+        src: "/usr/share/zoneinfo/{{ timezone | default('America/Chicago') }}"
+        dest: /etc/localtime
+        state: link
+        force: yes
+      tags:
+        - install
+        - update
+
+    - name: Write /etc/timezone
+      copy:
+        content: "{{ timezone | default('America/Chicago') }}\n"
+        dest: /etc/timezone
       tags:
         - install
         - update

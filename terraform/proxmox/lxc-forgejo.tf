@@ -1,5 +1,5 @@
-resource "proxmox_virtual_environment_container" "rustdesk" {
-  vm_id     = var.rustdesk_vmid
+resource "proxmox_virtual_environment_container" "forgejo" {
+  vm_id     = var.forgejo_vmid
   node_name = var.proxmox_node
 
   operating_system {
@@ -9,15 +9,15 @@ resource "proxmox_virtual_environment_container" "rustdesk" {
 
   disk {
     datastore_id = var.lxc_storage
-    size         = 8
+    size         = 10
   }
 
   cpu {
-    cores = 1
+    cores = 2
   }
 
   memory {
-    dedicated = 512
+    dedicated = 2048
   }
 
   network_interface {
@@ -26,11 +26,11 @@ resource "proxmox_virtual_environment_container" "rustdesk" {
   }
 
   initialization {
-    hostname = "rustdesk"
+    hostname = "forgejo"
 
     ip_config {
       ipv4 {
-        address = "${var.rustdesk_ip}/24" # Add CIDR notation
+        address = "${var.forgejo_ip}/24" # Add CIDR notation
         gateway = var.network_gateway
       }
     }
@@ -40,8 +40,8 @@ resource "proxmox_virtual_environment_container" "rustdesk" {
     }
 
     user_account {
-      keys     = [var.ssh_public_key]
-      password = onepassword_item.tailscale_lxc.password
+      keys     = local.ssh_public_keys
+      password = onepassword_item.forgejo_lxc.password
     }
   }
 

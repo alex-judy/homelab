@@ -1,0 +1,35 @@
+name: Proxmox Update
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  proxmox-update:
+    runs-on: docker
+    container:
+      image: registry.louhome.xyz/lou-home/ci-tools:f70a5e5474db9d62ef7d07aa73d939fd924ca051
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inject SSH private key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.FORGEJO_RUNNER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          printf "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Run Proxmox update playbook
+        run: |
+          pwd
+          ls -la
+          ansible-playbook ansible/playbooks/proxmox-update.yml -i ansible/inventory/hosts.yml --limit proxmox
+
+      - name: Notify update success
+        if: success()
+        run: |
+          echo "Proxmox update completed successfully at $(date)"

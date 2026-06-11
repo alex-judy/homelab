@@ -10,6 +10,7 @@
     pterodactyl_admin_username: "{{ lookup('env', 'PTERODACTYL_ADMIN_USERNAME') | default('admin') }}"
     pterodactyl_admin_email: "{{ lookup('env', 'PTERODACTYL_ADMIN_EMAIL') | default('') }}"
     pterodactyl_admin_password: "{{ lookup('env', 'PTERODACTYL_ADMIN_PASSWORD') | default('') }}"
+    pterodactyl_db_password: "{{ lookup('env', 'PTERODACTYL_DB_PASSWORD') | default('changeme', true) }}"
 
   tasks:
     - name: Wait for system to be ready
@@ -161,6 +162,16 @@
       tags:
         - install
 
+    - name: Ensure .env has correct database host
+      lineinfile:
+        path: "{{ install_dir }}/.env"
+        regexp: "^DB_HOST="
+        line: "DB_HOST=127.0.0.1"
+        create: yes
+      tags:
+        - install
+        - update
+
     - name: Ensure .env is writable by www-data
       file:
         path: "{{ install_dir }}/.env"
@@ -224,7 +235,7 @@
         - update
 
     - name: Validate PHP-FPM configuration
-      command: "/usr/sbin/php-fpm{{ php_version.stdout }} --test"
+      command: "/usr/sbin/php-fpm{{ php_version.stdout | default('8.3', true) }} --test"
       changed_when: false
       tags:
         - install
@@ -232,7 +243,7 @@
 
     - name: Restart PHP-FPM if config changed
       systemd:
-        name: "php{{ php_version.stdout }}-fpm"
+        name: "php{{ php_version.stdout | default('8.3', true) }}-fpm"
         state: restarted
       when: php_fpm_config is changed
       tags:
@@ -271,7 +282,7 @@
 
               location ~ \.php$ {
                   fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                  fastcgi_pass unix:/run/php/php{{ php_version.stdout }}-fpm.sock;
+                  fastcgi_pass unix:/run/php/php{{ php_version.stdout | default('8.3', true) }}-fpm.sock;
                   fastcgi_index index.php;
                   include fastcgi_params;
                   fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -328,7 +339,7 @@
 
     - name: Ensure PHP-FPM is started and enabled
       systemd:
-        name: "php{{ php_version.stdout }}-fpm"
+        name: "php{{ php_version.stdout | default('8.3', true) }}-fpm"
         enabled: yes
         state: started
 
@@ -359,8 +370,10 @@
     - name: Create MariaDB database and user for Pterodactyl
       shell: |
         mariadb -e "CREATE DATABASE IF NOT EXISTS {{ db_name }};"
-        mariadb -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'127.0.0.1' IDENTIFIED BY '{{ lookup('env', 'PTERODACTYL_DB_PASSWORD') | default('changeme') }}';"
+        mariadb -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'127.0.0.1' IDENTIFIED BY '{{ pterodactyl_db_password }}';"
+        mariadb -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ pterodactyl_db_password }}';"
         mariadb -e "GRANT ALL PRIVILEGES ON {{ db_name }}.* TO '{{ db_user }}'@'127.0.0.1'; FLUSH PRIVILEGES;"
+        mariadb -e "GRANT ALL PRIVILEGES ON {{ db_name }}.* TO '{{ db_user }}'@'localhost'; FLUSH PRIVILEGES;"
       args:
         executable: /bin/bash
       tags:
@@ -391,8 +404,17 @@
       lineinfile:
         path: "{{ install_dir }}/.env"
         regexp: "^DB_PASSWORD="
-        line: "DB_PASSWORD={{ lookup('env', 'PTERODACTYL_DB_PASSWORD') | default('changeme') }}"
+        line: "DB_PASSWORD={{ pterodactyl_db_password }}"
         create: yes
+      tags:
+        - install
+        - update
+
+    - name: Clear Laravel config cache
+      shell: |
+        cd "{{ install_dir }}"
+        php artisan config:clear
+      become_user: www-data
       tags:
         - install
         - update
@@ -428,7 +450,7 @@
 
     - name: Check if database tables exist
       shell: |
-        mariadb -u {{ db_user }} -p'{{ lookup('env', 'PTERODACTYL_DB_PASSWORD') | default('changeme') }}' \
+        mariadb -u {{ db_user }} -p'{{ pterodactyl_db_password }}' \
           -h 127.0.0.1 {{ db_name }} \
           -e "SHOW TABLES LIKE 'users';" | grep -q users
       register: db_tables_exist

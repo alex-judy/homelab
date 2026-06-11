@@ -3,17 +3,14 @@
 # artifact is what you want for KVM/Proxmox.
 
 resource "proxmox_virtual_environment_download_file" "haos-image" {
-  node_name    = var.proxmox_node
-  content_type = "iso"
-  datastore_id = "local"
-
-  url = "https://github.com/home-assistant/operating-system/releases/download/17.1/haos_ova-17.1.qcow2.xz"
-
+  content_type            = "iso"
+  datastore_id            = "local"
+  node_name               = var.proxmox_node
   decompression_algorithm = "zst"
-  file_name               = "haos_ova-17.1.img"
+  overwrite               = true
 
-  checksum           = "a4c320c38109357a5a3d7b42ee26c7cde4704197c9ea7f4c393f1ffca42fe376"
-  checksum_algorithm = "sha256"
+  url       = "https://github.com/home-assistant/operating-system/releases/download/17.1/haos_ova-17.1.qcow2.xz"
+  file_name = "haos_ova-17.1.img"
 }
 
 resource "proxmox_virtual_environment_vm" "home-assistant" {
@@ -76,11 +73,19 @@ resource "proxmox_virtual_environment_vm" "home-assistant" {
     type = "l26"
   }
 
+  initialization {
+    user_account {
+      keys = local.ssh_public_keys
+    }
+  }
+
   lifecycle {
     ignore_changes = [
       description,
       vga,
-      usb
+      usb,
+      boot_order,
+      disk[0].file_id,
     ]
   }
 }

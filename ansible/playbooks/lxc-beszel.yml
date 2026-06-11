@@ -60,13 +60,9 @@
 
     - name: Download Beszel binary (install/update)
       get_url:
-        url: >-
-          https://github.com/henrygd/beszel/releases/latest/download/
-          beszel_{{ ansible_system }}_{{ ansible_architecture | regex_replace('x86_64','amd64')
-            | regex_replace('armv6l|armv7l','arm')
-            | regex_replace('aarch64','arm64') }}.tar.gz
+        url: "https://github.com/henrygd/beszel/releases/latest/download/beszel_{{ ansible_system }}_{{ ansible_architecture | regex_replace('x86_64','amd64') | regex_replace('armv6l|armv7l','arm') | regex_replace('aarch64','arm64') }}.tar.gz"
         dest: /tmp/beszel.tar.gz
-        force: yes # always re‑fetch the "latest" asset
+        force: yes # always re-fetch the "latest" asset
       register: beszel_download
       tags:
         - install

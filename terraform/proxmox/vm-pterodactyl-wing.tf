@@ -15,7 +15,7 @@ resource "proxmox_virtual_environment_vm" "pterodactyl_wing" {
   }
 
   memory {
-    dedicated = 4096
+    dedicated = 8192
   }
 
   agent {
@@ -42,6 +42,11 @@ resource "proxmox_virtual_environment_vm" "pterodactyl_wing" {
   }
 
   initialization {
+
+    user_account {
+      keys = local.ssh_public_keys
+    }
+
     ip_config {
       ipv4 {
         address = "${var.pterodactyl_wing_ip}/24"
@@ -64,6 +69,13 @@ resource "proxmox_virtual_environment_vm" "pterodactyl_wing" {
     ignore_changes = [
       description,
       initialization,
+      disk[0].file_id,
+      disk[0].file_format,
+      disk[0].path_in_datastore,
+      network_device[0].mac_address,
+      boot_order,
+      vga,
+      cpu[0].units,
     ]
   }
 }

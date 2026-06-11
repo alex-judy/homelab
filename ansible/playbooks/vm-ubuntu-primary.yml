@@ -1,6 +1,8 @@
 - name: Setup Docker on Ubuntu Primary VM
   hosts: ubuntu-server-primary
   become: true
+  collections:
+    - community.docker
 
   vars:
     docker_dir: /opt/docker
@@ -33,6 +35,16 @@
       apt:
         update_cache: true
         cache_valid_time: 3600
+      tags:
+        - update
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      tags:
+        - update
 
     - name: Install Doppler CLI (optional)
       shell: |

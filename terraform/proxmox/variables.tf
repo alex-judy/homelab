@@ -1,3 +1,5 @@
+### 1Password configuration
+
 variable "op_service_account_token" {
   description = "1Password Service Account Token"
   type        = string
@@ -10,29 +12,7 @@ variable "op_vault_name" {
   default     = "Homelab"
 }
 
-variable "tailscale_lxc_name" {
-  description = "Name for the Tailscale LXC"
-  type        = string
-  default     = "tailscale-lxc"
-}
-
-variable "tailscale_vmid" {
-  description = "ID for the Tailscale LXC"
-  type        = number
-  default     = 100
-}
-
-variable "test_vm_name" {
-  description = "Name for the test VM"
-  type        = string
-  default     = "terraform-ubuntu-vm"
-}
-
-variable "test_vm_id" {
-  description = "VM ID for the test VM"
-  type        = number
-  default     = 4321
-}
+### Proxmox provider configuration
 
 variable "proxmox_api_url" {
   description = "Proxmox API URL"
@@ -69,6 +49,8 @@ variable "proxmox_node" {
   default     = "pve"
 }
 
+### Global Proxmox defaults
+
 variable "lxc_template" {
   description = "LXC template to use"
   type        = string
@@ -77,6 +59,12 @@ variable "lxc_template" {
 
 variable "lxc_storage" {
   description = "Storage pool for LXC containers"
+  type        = string
+  default     = "local-lvm"
+}
+
+variable "vm_storage" {
+  description = "Storage pool for QEMU VMs"
   type        = string
   default     = "local-lvm"
 }
@@ -104,23 +92,74 @@ variable "ssh_public_key" {
   type        = string
 }
 
-# IP Addresses for LXCs
+### Test resource defaults
+
+variable "test_vm_name" {
+  description = "Name for the test VM"
+  type        = string
+  default     = "terraform-ubuntu-vm"
+}
+
+variable "test_vm_id" {
+  description = "VM ID for the test VM"
+  type        = number
+  default     = 4321
+}
+
+### LXC node definitions
+
+variable "tailscale_lxc_name" {
+  description = "Name for the Tailscale LXC"
+  type        = string
+  default     = "tailscale-lxc"
+}
+
+variable "tailscale_vmid" {
+  description = "ID for the Tailscale LXC"
+  type        = number
+  default     = 100
+}
+
 variable "tailscale_ip" {
   description = "Static IP for Tailscale LXC"
   type        = string
   default     = "10.0.10.10"
 }
 
-variable "rustdesk_ip" {
-  description = "Static IP for Rustdesk LXC"
+variable "cloudflared_ip" {
+  description = "Static IP for Cloudflared LXC"
   type        = string
-  default     = "10.0.10.11"
+  default     = "10.0.10.9"
+}
+
+variable "forgejo_vmid" {
+  description = "Proxmox VMID for Forgejo LXC (set to existing VMID for import)"
+  type        = number
+  default     = 108
+}
+
+variable "forgejo_ip" {
+  description = "Static IP for Forgejo LXC"
+  type        = string
+  default     = "10.0.10.18"
+}
+
+variable "beszel_vmid" {
+  description = "Proxmox VMID for Beszel LXC (set to existing VMID for import)"
+  type        = number
+  default     = 116
 }
 
 variable "beszel_ip" {
   description = "Static IP for Beszel LXC"
   type        = string
   default     = "10.0.10.12"
+}
+
+variable "homeassistant_vmid" {
+  description = "Proxmox VMID for Home Assistant LXC (set to existing VMID for import)"
+  type        = number
+  default     = 117
 }
 
 variable "homeassistant_ip" {
@@ -147,38 +186,20 @@ variable "downloads_ip" {
   default     = "10.0.10.14"
 }
 
-variable "rustdesk_vmid" {
-  description = "Proxmox VMID for Rustdesk LXC (set to existing VMID for import)"
+variable "pterodactyl_panel_vmid" {
+  description = "Proxmox VMID for Pterodactyl Panel LXC"
   type        = number
-  default     = 115
+  default     = 118
 }
 
-variable "beszel_vmid" {
-  description = "Proxmox VMID for Beszel LXC (set to existing VMID for import)"
-  type        = number
-  default     = 116
-}
+### NFS and storage configuration
 
-variable "homeassistant_vmid" {
-  description = "Proxmox VMID for Home Assistant LXC (set to existing VMID for import)"
-  type        = number
-  default     = 117
-}
-
-variable "cloudflared_ip" {
-  description = "Static IP for Cloudflared LXC"
-  type        = string
-  default     = "10.0.10.9"
-}
-
-# NFS Server (TrueNAS)
 variable "truenas_nfs_server" {
   description = "TrueNAS NFS server IP"
   type        = string
   default     = "10.0.10.25"
 }
 
-# Plex NFS export and mountpoint
 variable "plex_nfs_export" {
   description = "NFS export path on the TrueNAS server for Plex"
   type        = string
@@ -191,11 +212,12 @@ variable "plex_nfs_mountpoint" {
   default     = "/mnt/media"
 }
 
-# Docker VM (QEMU) configuration
+### Ubuntu VM
+
 variable "ubuntu_server_primary_vmid" {
   description = "Proxmox VMID for the Ubuntu server primary (Docker host)"
   type        = number
-  default     = 120
+  default     = 101
 }
 
 variable "ubuntu_server_primary_ip" {
@@ -222,37 +244,46 @@ variable "ubuntu_server_primary_disk" {
   default     = "378G"
 }
 
-variable "vm_storage" {
-  description = "Storage pool for QEMU VMs"
-  type        = string
-  default     = "local-lvm"
-}
-
-variable "vm_ci_user" {
-  description = "Cloud-init user for VMs (if using cloud-init images)"
-  type        = string
-  default     = "ubuntu"
-}
-
-variable "vm_iso" {
-  description = "Optional ISO to attach for installation (set empty to skip)"
-  type        = string
-  default     = ""
-}
-# Pterodactyl Panel LXC configuration
-variable "pterodactyl_panel_vmid" {
-  description = "Proxmox VMID for Pterodactyl Panel LXC"
-  type        = number
-  default     = 118
-}
-
 variable "pterodactyl_panel_ip" {
   description = "Static IP for Pterodactyl Panel LXC"
   type        = string
   default     = "10.0.10.16"
 }
 
-# Pterodactyl Wing VM configuration
+### Ubuntu DevOps VM
+
+variable "ubuntu_devops_server_primary_vmid" {
+  description = "Proxmox VMID for the Ubuntu server primary (Docker host)"
+  type        = number
+  default     = 163
+}
+
+variable "ubuntu_devops_server_primary_ip" {
+  description = "Static IP for Ubuntu DevOps server primary"
+  type        = string
+  default     = "10.0.10.60"
+}
+
+variable "ubuntu_devops_server_primary_cores" {
+  description = "vCPU count for Ubuntu DevOps server primary"
+  type        = number
+  default     = 2
+}
+
+variable "ubuntu_devops_server_primary_memory" {
+  description = "RAM (MB) for Ubuntu DevOps server primary"
+  type        = number
+  default     = 4096
+}
+
+variable "ubuntu_devops_server_primary_disk" {
+  description = "Disk size for Ubuntu DevOps server primary"
+  type        = number
+  default     = 30
+}
+
+### Pterodactyl Wing VM configuration
+
 variable "pterodactyl_wing_vmid" {
   description = "Proxmox VMID for Pterodactyl Wing virtual machine"
   type        = number
@@ -263,4 +294,11 @@ variable "pterodactyl_wing_ip" {
   description = "Static IP for Pterodactyl Wing VM"
   type        = string
   default     = "10.0.10.17"
+}
+
+### Forgejo Runner configuration
+
+variable "runner_public_key" {
+  description = "Forgejo runner deploy public key"
+  type        = string
 }

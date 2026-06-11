@@ -30,4 +30,5 @@ provider "proxmox" {
 
 provider "onepassword" {
   service_account_token = var.op_service_account_token
+  # service_account_token pulled from OP_SERVICE_ACCOUNT_TOKEN env var automatically
 }

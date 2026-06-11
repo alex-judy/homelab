@@ -40,7 +40,7 @@ resource "proxmox_virtual_environment_container" "pterodactyl_panel" {
     }
 
     user_account {
-      keys     = [var.ssh_public_key]
+      keys     = local.ssh_public_keys
       password = onepassword_item.pterodactyl_panel_lxc.password
     }
   }
@@ -52,7 +52,7 @@ resource "proxmox_virtual_environment_container" "pterodactyl_panel" {
   lifecycle {
     ignore_changes = [
       description,
-      initialization,
+      initialization
     ]
   }
 }

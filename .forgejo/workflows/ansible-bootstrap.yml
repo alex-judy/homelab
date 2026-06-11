@@ -1,0 +1,21 @@
+name: Ansible Bootstrap
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  bootstrap:
+    runs-on: native
+
+    steps:
+      - name: Install Ansible
+        run: |
+          apt-get update
+          apt-get install -y software-properties-common
+          apt-add-repository --yes --update ppa:ansible/ansible
+          apt-get install -y ansible
+
+      - name: Install Ansible roles from requirements.yml
+        run: |
+          cd /root/homelab/ansible
+          ansible-galaxy install -r requirements.yml -p roles

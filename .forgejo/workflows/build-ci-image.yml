@@ -1,0 +1,44 @@
+# .forgejo/workflows/build-ci-image.yml
+name: Build CI Tools Image
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "ci/images/ci-tools/Dockerfile"
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: docker
+    container:
+      image: catthehacker/ubuntu:act-latest
+    env:
+      DOCKER_HOST: tcp://127.0.0.1:2375
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # - name: Add registry to hosts
+      #   run: echo "10.0.10.30 registry.louhome.xyz" >> /etc/hosts
+
+      - name: Login to Forgejo registry
+        env:
+          DOCKER_CONFIG: ${{ github.workspace }}/.docker
+        run: |
+          echo "${{ secrets.FORGEJO_AUTOMATION_SVC_ACCT_TOKEN }}" | docker login registry.louhome.xyz \
+            --username ${{ vars.FORGEJO_AUTOMATION_SVC_ACCT_NAME }} \
+            --password-stdin
+
+      - name: Build and push
+        env:
+          DOCKER_CONFIG: ${{ github.workspace }}/.docker
+        run: |
+          # Use buildx explicitly and pass the --push flag
+          docker buildx build \
+            --push \
+            -t registry.louhome.xyz/lou-home/ci-tools:latest \
+            -t registry.louhome.xyz/lou-home/ci-tools:${{ github.sha }} \
+            ci/images/ci-tools/

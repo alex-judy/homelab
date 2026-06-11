@@ -22,14 +22,14 @@ resource "proxmox_virtual_environment_vm" "ubuntu_server_primary" {
   boot_order = ["scsi0", "net0"]
 
   cpu {
-    cores   = 8
+    cores   = 6
     sockets = 1
     type    = "x86-64-v3"
     numa    = false
   }
 
   memory {
-    dedicated = 16000
+    dedicated = 12290
   }
 
   disk {
@@ -53,18 +53,13 @@ resource "proxmox_virtual_environment_vm" "ubuntu_server_primary" {
     type = "l26"
   }
 
-  hostpci {
-    device = "hostpci0"
-    id     = "00:02.0"
-    pcie   = false
-    rombar = true
-  }
-
-  usb {
-    host = "1a86:55d4"
-  }
-
   tags = ["public"]
+
+  initialization {
+    user_account {
+      keys = local.ssh_public_keys
+    }
+  }
 
   lifecycle {
     prevent_destroy = true

@@ -40,7 +40,7 @@ resource "proxmox_virtual_environment_container" "beszel" {
     }
 
     user_account {
-      keys     = [var.ssh_public_key]
+      keys     = local.ssh_public_keys
       password = onepassword_item.beszel_lxc.password
     }
   }

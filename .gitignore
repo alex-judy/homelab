@@ -25,9 +25,7 @@ tfplan
 ansible/*.retry
 ansible/.vault_pass
 ansible/**/*.retry
-ansible/roles/**/molecule/.molecule
-ansible/roles/**/molecule/.pytest_cache
-ansible/roles/requirements.yml.lock
+ansible/roles/artis3n*
 *.log
 
 # =============================================================================

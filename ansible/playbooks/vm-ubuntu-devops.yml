@@ -1,0 +1,10 @@
+---
+- name: Install Docker and deploy Komodo + Forgejo Runner
+  hosts: ubuntu-devops
+  become: true
+  vars:
+    ansible_become_method: sudo
+    doppler_token: "{{ lookup('env', 'DOPPLER_TOKEN') }}"
+    compose_source_dir: "{{ playbook_dir }}/../../docker/ubuntu-devops/compose-files"
+  roles:
+    - ubuntu-devops-docker

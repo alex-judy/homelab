@@ -1,0 +1,28 @@
+- name: Update Proxmox host packages
+  hosts: proxmox
+  become: true
+  tags:
+    - update
+
+  tasks:
+    - name: Update apt cache on Proxmox host
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages on Proxmox host
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      register: proxmox_upgrade
+
+    - name: Check whether Proxmox host needs reboot
+      stat:
+        path: /var/run/reboot-required
+      register: proxmox_reboot_required
+
+    - name: Reboot Proxmox host if required after upgrade
+      reboot:
+        reboot_timeout: 600
+      when: proxmox_upgrade is changed and proxmox_reboot_required.stat.exists

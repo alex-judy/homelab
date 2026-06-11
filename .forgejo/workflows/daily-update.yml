@@ -1,0 +1,21 @@
+name: Daily Homelab Updates
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  update:
+    runs-on: native
+
+    steps:
+      - name: Run Ansible update playbook
+        run: |
+          cd /root/src/homelab
+          ansible-playbook ansible/playbooks/update-services.yml --tags update
+
+      - name: Notify update success
+        if: success()
+        run: |
+          echo "Daily Homelab update completed successfully at $(date)"

@@ -1,0 +1,19 @@
+name: Renovate Docker Updates
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  renovate:
+    runs-on: native
+
+    steps:
+      - name: Run Renovate for Docker Compose
+        run: |
+          cd /root/homelab
+          docker run --rm \
+            -v /root/homelab:/mnt/renovate \
+            -w /mnt/renovate \
+            renovate/renovate

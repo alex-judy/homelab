@@ -18,19 +18,15 @@
 - import_playbook: lxc-plex.yml
   tags: ["plex"]
 
-# Note: rustdesk and beszel playbooks
-- import_playbook: lxc-rustdesk.yml
-  tags: ["rustdesk"]
-
 - import_playbook: lxc-beszel.yml
   tags: ["beszel"]
 
-- import_playbook: vm-home-assistant.yml
-  tags: ["homeassistant"]
+- import_playbook: lxc-forgejo.yml
+  tags: ["forgejo"]
 
 - name: Configuration complete
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   tasks:
     - name: Display completion message
       debug:

@@ -80,12 +80,10 @@
       tags: [install, update, nfs]
 
     - name: Ensure mount points exist
-      file:
-        path: "{{ item.mount_point }}"
-        state: directory
-        mode: "0755"
+      shell: mkdir -p {{ item.mount_point }}
       loop: "{{ truenas_shares | default([]) }}"
       when: truenas_shares | default([]) | length > 0
+      changed_when: false
       tags: [install, update, nfs]
 
     - name: Mount TrueNAS NFS shares
