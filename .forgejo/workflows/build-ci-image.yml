@@ -2,6 +2,8 @@
 name: Build CI Tools Image
 
 on:
+  schedule:
+    - cron: "0 4 * * *"
   workflow_dispatch: {}
   push:
     paths:
@@ -20,9 +22,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # - name: Add registry to hosts
-      #   run: echo "10.0.10.30 registry.louhome.xyz" >> /etc/hosts
 
       - name: Login to Forgejo registry
         env:

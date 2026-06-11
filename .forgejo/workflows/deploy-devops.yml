@@ -1,0 +1,37 @@
+name: Deploy Devops Stacks
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "docker/ubuntu-devops/compose-files/**"
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: docker
+    container:
+      image: registry.louhome.xyz/lou-home/ci-tools:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.FORGEJO_RUNNER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 10.0.10.18 >> ~/.ssh/known_hosts
+
+      - name: Run deploy playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_DEVOPS_TOKEN }}
+        run: |
+          ansible-playbook playbooks/deploy-ubuntu-devops-stacks.yml \
+            -e doppler_token=$DOPPLER_TOKEN \
+            -i inventory/hosts.yml

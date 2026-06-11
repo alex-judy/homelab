@@ -1,10 +1,27 @@
----
-- name: Install Docker and deploy Komodo + Forgejo Runner
-  hosts: ubuntu-devops
+- hosts: ubuntu-devops
   become: true
   vars:
-    ansible_become_method: sudo
-    doppler_token: "{{ lookup('env', 'DOPPLER_TOKEN') }}"
-    compose_source_dir: "{{ playbook_dir }}/../../docker/ubuntu-devops/compose-files"
-  roles:
-    - ubuntu-devops-docker
+    compose_root: /opt/docker/ubuntu-devops/compose-files
+  tasks:
+    - name: Sync compose stacks
+      ansible.posix.synchronize:
+        src: "{{ playbook_dir }}/../docker/ubuntu-devops/compose-files/"
+        dest: "{{ compose_root }}/"
+        delete: true
+        recursive: true
+
+    - name: Find stack directories
+      ansible.builtin.find:
+        paths: "{{ compose_root }}"
+        file_type: directory
+        depth: 1
+      register: stack_dirs
+
+    - name: Deploy each stack
+      ansible.builtin.shell: |
+        doppler run --token={{ doppler_token }} -- docker compose up -d
+      args:
+        chdir: "{{ item.path }}"
+      loop: "{{ stack_dirs.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"

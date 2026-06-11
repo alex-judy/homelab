@@ -5,7 +5,6 @@ services:
       - "registry.louhome.xyz:10.0.10.30"
     container_name: docker_dind
     privileged: true
-    # Expose the port to the host/stack loopback
     ports:
       - "2375:2375"
     command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
@@ -23,6 +22,5 @@ services:
         condition: service_started
     volumes:
       - /opt/docker/runner/data:/data
-    # Use host network mode for the daemon so it matches the config expectations
     network_mode: "host"
     command: ["forgejo-runner", "-c", "/data/runner-config.yml", "daemon"]
