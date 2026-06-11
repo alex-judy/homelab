@@ -33,7 +33,7 @@ services:
   ## Glances - Container and System Monitor
   glances:
     container_name: glances
-    image: nicolargo/glances:3.4.0.5
+    image: nicolargo/glances:4.5.3.2
     pid: host
     restart: always
     networks:
