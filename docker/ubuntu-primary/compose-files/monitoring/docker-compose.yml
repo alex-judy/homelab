@@ -33,7 +33,7 @@ services:
   ## Glances - Container and System Monitor
   glances:
     container_name: glances
-    image: nicolargo/glances:3.3.0.1
+    image: nicolargo/glances:3.4.0.5
     pid: host
     restart: always
     networks:
@@ -128,7 +128,7 @@ services:
     # TimescaleDB HA with PostgreSQL 18 and Toolkit
     # PostgreSQL 18 features: AIO for 3x I/O performance, UUIDv7, temporal constraints
     # Note: ~1.5GB image size (includes Patroni, backup tools, many extensions)
-    image: timescale/timescaledb:2.25.0-pg16
+    image: timescale/timescaledb:2.27.2-pg16
     container_name: tracearr-db
     shm_size: 512mb # Required for PostgreSQL shared memory (increase for large imports)
     ulimits:
