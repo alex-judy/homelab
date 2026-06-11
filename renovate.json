@@ -2,6 +2,7 @@
     "extends": [
         "config:recommended"
     ],
+    "configMigration": true,
     "timezone": "UTC",
     "schedule": [
         "after 5am every day"
@@ -19,6 +20,30 @@
             ],
             "groupName": "docker container updates",
             "groupSlug": "docker-container-updates"
+        },
+        {
+            "matchDatasources": [
+                "docker"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch",
+                "digest"
+            ],
+            "automerge": true,
+            "automergeType": "pr",
+            "platformAutomerge": true
+        },
+        {
+            "matchDatasources": [
+                "docker"
+            ],
+            "matchUpdateTypes": [
+                "major"
+            ],
+            "groupName": "docker major updates",
+            "groupSlug": "docker-major-updates",
+            "automerge": false
         }
     ]
 }
