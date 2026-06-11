@@ -5,7 +5,7 @@
     "configMigration": true,
     "timezone": "UTC",
     "schedule": [
-        "after 5am every day"
+        "after 5am"
     ],
     "enabledManagers": [
         "docker-compose"
