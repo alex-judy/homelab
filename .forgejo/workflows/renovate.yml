@@ -1,19 +1,23 @@
-name: Renovate Docker Updates
+name: Renovate
 
 on:
   schedule:
-    - cron: "0 5 * * *"
+    - cron: "0 4 * * *" # daily at 4am
   workflow_dispatch: {}
 
 jobs:
   renovate:
-    runs-on: native
-
+    runs-on: docker
+    container:
+      image: renovate/renovate:latest
     steps:
-      - name: Run Renovate for Docker Compose
-        run: |
-          cd /root/homelab
-          docker run --rm \
-            -v /root/homelab:/mnt/renovate \
-            -w /mnt/renovate \
-            renovate/renovate
+      - name: Run Renovate
+        env:
+          RENOVATE_DRY_RUN: ${{ vars.RENOVATE_DRY_RUN}}
+          RENOVATE_PLATFORM: forgejo
+          RENOVATE_ENDPOINT: https://forgejo.louhome.xyz/api/v1/
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          RENOVATE_AUTODISCOVER: "false"
+          RENOVATE_REPOSITORIES: '["alex/homelab"]'
+          GITHUB_COM_TOKEN: ${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}
+        run: renovate
