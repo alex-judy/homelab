@@ -2,7 +2,7 @@ services:
   ########## Media Automation ##########
 
   profilarr:
-    image: santiagosayshey/profilarr:latest
+    image: santiagosayshey/profilarr:v1.1.4
     container_name: profilarr
     ports:
       - 6868:6868
@@ -15,32 +15,10 @@ services:
       - traefik_proxy
       - socket_proxy
 
-  recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:latest
-    container_name: recyclarr
-    environment:
-      - TZ
-      - RECYCLARR_CREATE_CONFIG=true
-      - RADARR_API_KEY
-      - RADARR_BASE_URL=http://radarr:7878
-      - RADARR4K_API_KEY
-      - RADARR4K_BASE_URL=http://radarr4k:7879
-      - SONARR_API_KEY
-      - SONARR_BASE_URL=http://sonarr:8989
-      - SONARR4K_API_KEY
-      - SONARR4K_BASE_URL=http://sonarr4k:8987
-    user: 1000:1000
-    volumes:
-      - $DOCKER_DIR/configs/recyclarr:/config
-    networks:
-      - traefik_proxy
-      - socket_proxy
-    restart: unless-stopped
-
   ## Radarr – Movie Download and Management
   radarr:
     container_name: radarr
-    image: linuxserver/radarr:latest
+    image: linuxserver/radarr:6.2.1
     restart: unless-stopped
     networks:
       traefik_proxy:
@@ -80,7 +58,7 @@ services:
   ## Radarr4K – Movie Download and Management
   radarr4k:
     container_name: radarr4k
-    image: linuxserver/radarr:latest
+    image: linuxserver/radarr:6.2.1
     restart: unless-stopped
     networks:
       traefik_proxy:
@@ -119,7 +97,7 @@ services:
   ## Sonarr – TV Show Download and Management
   sonarr:
     container_name: sonarr
-    image: linuxserver/sonarr:latest
+    image: linuxserver/sonarr:4.0.17
     restart: unless-stopped
     networks:
       traefik_proxy:
@@ -158,7 +136,7 @@ services:
   ## Sonarr4K – TV Show Download and Management
   sonarr4k:
     container_name: sonarr4k
-    image: linuxserver/sonarr:latest
+    image: linuxserver/sonarr:4.0.17
     restart: unless-stopped
     networks:
       traefik_proxy:
@@ -195,7 +173,7 @@ services:
       - "traefik.http.routers.sonarr4k-bypass.service=sonarr4k-svc"
 
   bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
+    image: lscr.io/linuxserver/bazarr:1.5.6
     container_name: bazarr
     networks:
       traefik_proxy:
@@ -229,7 +207,7 @@ services:
       - "traefik.http.routers.bazarr-bypass.service=bazarr-svc"
 
   bazarr4k:
-    image: lscr.io/linuxserver/bazarr:latest
+    image: lscr.io/linuxserver/bazarr:1.5.6
     container_name: bazarr4k
     networks:
       traefik_proxy:
@@ -263,7 +241,7 @@ services:
       - "traefik.http.routers.bazarr4k-bypass.service=bazarr4k-svc"
 
   dispatcharr:
-    image: ghcr.io/dispatcharr/dispatcharr:latest
+    image: ghcr.io/dispatcharr/dispatcharr:0.26.0
     container_name: dispatcharr
     networks:
       - traefik_proxy

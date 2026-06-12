@@ -1,8 +1,6 @@
-
 services:
-
   gluetun:
-    image: qmcgaw/gluetun
+    image: qmcgaw/gluetun:pr-3361
     container_name: vpn
     restart: always
     cap_add:
@@ -13,7 +11,7 @@ services:
       - $DOCKER_DIR/data/gluetun:/gluetun
     networks:
       - socket_proxy
-      - traefik_proxy      
+      - traefik_proxy
     environment:
       - VPN_SERVICE_PROVIDER=private internet access
       - OPENVPN_USER=${PIA_USER}
@@ -25,7 +23,7 @@ services:
       - 6881:6881 # qbittorrent
       - 6881:6881/udp # qbittorrent
       # sabnzbd
-      - 8087:8080 # sabnzbd      
+      # - 8087:8080 # sabnzbd
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -36,17 +34,17 @@ services:
       ## HTTP Services
       - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
       - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8085"
-      ## HTTP Routers
-      - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
-      - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sab.${DOMAIN_NAME}`)"
-      ## Middlewares
-      - "traefik.http.routers.sabnzbd-rtr.middlewares=rate-limit@file, chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
-      - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"      
-      
+      # ## HTTP Routers
+      # - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
+      # - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sab.${DOMAIN_NAME}`)"
+      # ## Middlewares
+      # - "traefik.http.routers.sabnzbd-rtr.middlewares=rate-limit@file, chain-oauth@file"
+      # ## HTTP Services
+      # - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
+      # - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
+
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: lscr.io/linuxserver/qbittorrent:5.2.1
     restart: unless-stopped
     container_name: qbittorrent
     network_mode: service:gluetun
@@ -59,25 +57,38 @@ services:
     # ports:
     #   - 8085:8085
     #   - 6881:6881
-    #   - 6881:6881/udp      
+    #   - 6881:6881/udp
     volumes:
       - $DOCKER_DIR/configs/qbittorrent:/config
       - $DOWNLOADS_DIR/torrents:/downloads/torrents
 
   sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:latest
-    restart: unless-stopped    
+    image: lscr.io/linuxserver/sabnzbd:5.0.4-ls258
+    restart: unless-stopped
     container_name: sabnzbd
-    network_mode: service:gluetun
+    # network_mode: service:gluetun
     environment:
       - PUID
       - PGID
       - TZ
-    # ports:
-    #   - 8087:8080        
+    ports:
+      - 8087:8080
     volumes:
       - $DOCKER_DIR/configs/sabnzbd:/config
       - $DOWNLOADS_DIR/usenet:/downloads #optional
+    networks:
+      - socket_proxy
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
+      - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sab.${DOMAIN_NAME}`)"
+      ## Middlewares
+      - "traefik.http.routers.sabnzbd-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
+      - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
 
 networks:
   traefik_proxy:

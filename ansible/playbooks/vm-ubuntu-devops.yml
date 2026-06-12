@@ -3,12 +3,24 @@
   vars:
     compose_root: /opt/docker/ubuntu-devops/compose-files
   tasks:
+    - name: Ensure remote compose directory exists
+      ansible.builtin.file:
+        path: "{{ compose_root }}"
+        state: directory
+        mode: "0755"
+
     - name: Sync compose stacks
       ansible.posix.synchronize:
-        src: "{{ playbook_dir }}/../docker/ubuntu-devops/compose-files/"
+        src: "{{ playbook_dir }}/../../docker/ubuntu-devops/compose-files/"
         dest: "{{ compose_root }}/"
         delete: true
         recursive: true
+
+    - name: Install Doppler CLI
+      ansible.builtin.shell: |
+        curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
+      args:
+        creates: /usr/local/bin/doppler
 
     - name: Find stack directories
       ansible.builtin.find:

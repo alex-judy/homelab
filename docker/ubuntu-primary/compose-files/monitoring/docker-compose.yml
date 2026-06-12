@@ -1,7 +1,7 @@
 services:
   ## Dozzle - Real-time Docker Log Viewer
   dozzle:
-    image: amir20/dozzle:latest
+    image: amir20/dozzle:v10.6
     container_name: dozzle
     restart: always
     networks:
@@ -33,7 +33,7 @@ services:
   ## Glances - Container and System Monitor
   glances:
     container_name: glances
-    image: nicolargo/glances:4.5.3.2
+    image: nicolargo/glances:4.5.4
     pid: host
     restart: always
     networks:
@@ -62,7 +62,7 @@ services:
       - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
 
   beszel-agent:
-    image: henrygd/beszel-agent:latest
+    image: henrygd/beszel-agent:0.18.7
     container_name: beszel-agent
     restart: unless-stopped
     network_mode: host
@@ -84,12 +84,12 @@ services:
       DOCKER_HOST: tcp://socket-proxy:2375
       LISTEN: 45876
       KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXaHqH9maCEFlC8h76KpfVZLDSmg8Vbg5jXjP7Xpod6"
-      TOKEN: ${BESZEL_AGENT_TOKEN}
+      TOKEN: 5fe-8b85f3983e8-55d4-5613703e58
       HUB_URL: http://10.0.10.12:8090
       INTEL_GPU_DEVICE: drm:/dev/dri/card0
 
   tracearr:
-    image: ghcr.io/connorgallopo/tracearr:latest
+    image: ghcr.io/connorgallopo/tracearr@sha256:ca93988326c26597e0d9c91d69c0f97e7ed23c517cf327c22bc7f188002af998
     container_name: tracearr
     ports:
       - "3001:3000"
@@ -98,7 +98,7 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - TZ=${TZ:-UTC}
-      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD}@tracearr-db:5432/tracearr
+      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-db:5432/tracearr
       - REDIS_URL=redis://tracearr-redis:6379
       - JWT_SECRET=${TRACEARR_JWT_SECRET}
       - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
@@ -128,7 +128,7 @@ services:
     # TimescaleDB HA with PostgreSQL 18 and Toolkit
     # PostgreSQL 18 features: AIO for 3x I/O performance, UUIDv7, temporal constraints
     # Note: ~1.5GB image size (includes Patroni, backup tools, many extensions)
-    image: timescale/timescaledb:2.27.2-pg16
+    image: timescale/timescaledb:2.27.2-pg18
     container_name: tracearr-db
     shm_size: 512mb # Required for PostgreSQL shared memory (increase for large imports)
     ulimits:
@@ -140,7 +140,7 @@ services:
     command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
     environment:
       - POSTGRES_USER=tracearr
-      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD}
+      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}
       - POSTGRES_DB=tracearr
     volumes:
       - $DOCKER_DIR/data/tracearr-db:/home/postgres/pgdata/data
@@ -154,7 +154,7 @@ services:
       - traefik_proxy
 
   tracearr-redis:
-    image: redis:8-alpine
+    image: redis:8.8.0-alpine
     container_name: tracearr-redis
     command: redis-server --appendonly yes
     volumes:

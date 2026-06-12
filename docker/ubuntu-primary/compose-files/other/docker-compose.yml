@@ -4,7 +4,7 @@ services:
   ## VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
-    image: linuxserver/code-server:latest
+    image: linuxserver/code-server:4.123.0
     container_name: vscode
     restart: always
     networks:
@@ -40,7 +40,7 @@ services:
   ## Davos - An FTP Automation Tool
   davos:
     container_name: davos
-    image: linuxserver/davos:latest
+    image: linuxserver/davos:2.2.2
     restart: always
     networks:
       - traefik_proxy
@@ -75,7 +75,7 @@ services:
 
   syncthing:
     container_name: syncthing
-    image: linuxserver/syncthing:latest
+    image: linuxserver/syncthing:2.1.1
     restart: always
     networks:
       - traefik_proxy
@@ -107,47 +107,9 @@ services:
       - "traefik.http.routers.syncthing-rtr.service=syncthing-svc"
       - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
 
-  ## Home Assistant - Home Automation Hub
-  ## Check config with:
-  # docker exec -it hass hass --script check_config -c /config
-
-  # hass:
-  #   container_name: hass
-  #   image: homeassistant/home-assistant:latest
-  #   restart: always
-  #   #    privileged: true
-  #   networks:
-  #     - traefik_proxy
-  #     # - mqtt
-  #   ports:
-  #     - "8123:8123"
-  #   security_opt:
-  #     - no-new-privileges:true
-  #   volumes:
-  #     - $DOCKER_DIR/configs/hass:/config
-  #   environment:
-  #     - TZ=$TZ
-  #   labels:
-  #     - "traefik.enable=true"
-  #     ## HTTP Routers
-  #     - "traefik.http.routers.hass-rtr.entrypoints=https"
-  #     - "traefik.http.routers.hass-rtr.rule=Host(`hass.${DOMAIN_NAME}`)"
-  #     - "traefik.http.routers.hass-rtr.priority=10"
-  #     ## Middlewares
-  #     - "traefik.http.routers.hass-rtr.middlewares=secure-headers@file"
-  #     ## HTTP Services
-  #     - "traefik.http.routers.hass-rtr.service=hass-svc"
-  #     - "traefik.http.services.hass-svc.loadbalancer.server.port=8123"
-  #     ## API Forward Auth Bypass
-  #     - "traefik.http.routers.hass-bypass.entrypoints=https"
-  #     - "traefik.http.routers.hass-bypass.rule=(Host(`hass.${DOMAIN_NAME}`) && PathPrefix(`/api/`))"
-  #     - "traefik.http.routers.hass-bypass.priority=20"
-  #     - "traefik.http.routers.hass-bypass.middlewares=secure-headers@file"
-  #     - "traefik.http.routers.hass-bypass.service=hass-svc"
-
   filebrowser:
     container_name: filebrowser
-    image: gtstef/filebrowser:latest
+    image: gtstef/filebrowser:1.4.4-beta
     restart: unless-stopped
     networks:
       - traefik_proxy
@@ -181,7 +143,7 @@ services:
 
   stirling-pdf:
     container_name: stirling
-    image: stirlingtools/stirling-pdf:latest
+    image: stirlingtools/stirling-pdf:2.12.0
     restart: always
     networks:
       - traefik_proxy
@@ -208,7 +170,7 @@ services:
 
   paperless-redis:
     container_name: paperless-redis
-    image: docker.io/library/redis:latest
+    image: redis:8.8.0-alpine
     restart: unless-stopped
     networks:
       - socket_proxy
@@ -216,7 +178,7 @@ services:
       - $DOCKER_DIR/data/paperless-redis:/data
 
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
     container_name: paperless
     networks:
       - traefik_proxy
@@ -250,7 +212,7 @@ services:
       - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:latest
+    image: ghcr.io/mealie-recipes/mealie:v3.19.2
     container_name: mealie
     networks:
       - traefik_proxy

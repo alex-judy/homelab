@@ -23,15 +23,16 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.FORGEJO_RUNNER_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H 10.0.10.18 >> ~/.ssh/known_hosts
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/homelab-runner
+          chmod 600 ~/.ssh/homelab-runner
+          ssh-keyscan -H 10.0.10.60 >> ~/.ssh/known_hosts
 
       - name: Run deploy playbook
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_DEVOPS_TOKEN }}
         run: |
-          ansible-playbook playbooks/deploy-ubuntu-devops-stacks.yml \
+          ansible-playbook ansible/playbooks/vm-ubuntu-devops.yml \
             -e doppler_token=$DOPPLER_TOKEN \
-            -i inventory/hosts.yml
+            --private-key=$HOME/.ssh/homelab-runner \
+            -i ansible/inventory/hosts.yml

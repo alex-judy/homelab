@@ -14,7 +14,7 @@ services:
   # 
   watchtower:
     container_name: watchtower
-    image: containrrr/watchtower:latest
+    image: containrrr/watchtower:1.7.1
     restart: always
     networks:
       - traefik_proxy
@@ -55,7 +55,7 @@ services:
   whoami:
     <<: *default-settings
     container_name: whoami
-    image: traefik/whoami:latest
+    image: traefik/whoami:v1.11.0
     environment:
       - WHOAMI_NAME
     labels:

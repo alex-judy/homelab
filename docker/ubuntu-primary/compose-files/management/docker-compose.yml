@@ -5,7 +5,7 @@ services:
   portainer:
     # user: $PUID
     container_name: portainer
-    image: portainer/portainer-ee:latest
+    image: portainer/portainer-ee:2.42.0
     restart: always
     command: -H tcp://socket-proxy:2375
     networks:
@@ -37,7 +37,7 @@ services:
       - homepage.description=WebUI for managing containers, images, networks, and volumes.
 
   homepage:
-    image: ghcr.io/gethomepage/homepage:latest
+    image: ghcr.io/gethomepage/homepage:v1.13.2
     container_name: homepage
     networks:
       - traefik_proxy
@@ -65,32 +65,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.homepage-rtr.service=homepage-svc"
       - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
-
-  ## Homarr - Home Dashboard
-  homarr:
-    container_name: homarr
-    image: ghcr.io/ajnart/homarr:latest
-    networks:
-      - traefik_proxy
-    restart: unless-stopped
-    volumes:
-      - $DOCKER_DIR/configs/homarr:/app/data/configs
-      - $DOCKER_DIR/configs/homarr/icons:/app/public/icons
-      - $DOCKER_DIR/configs/homarr/data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "7575:7575"
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.homarr-rtr.entrypoints=https"
-      - "traefik.http.routers.homarr-rtr.rule=Host(`${DOMAIN_NAME}`)"
-      - "traefik.http.routers.homarr-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.homarr-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.homarr-rtr.service=homarr-svc"
-      - "traefik.http.services.homarr-svc.loadbalancer.server.port=7575"
 
 networks:
   traefik_proxy:
