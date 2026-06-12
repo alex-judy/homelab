@@ -42,4 +42,16 @@ RUN ansible --version && \
     ssh -V && \
     rsync --version
 
+# Install scanner dependencies
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install --no-cache-dir ansible-lint yamllint checkov ggshield pip-audit && \
+    curl -L https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64 -o /usr/local/bin/tfsec && \
+    chmod +x /usr/local/bin/tfsec && \
+    curl -L https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint && \
+    chmod +x /usr/local/bin/hadolint && \
+    curl -L https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz -C /usr/local/bin actionlint && \
+    curl -L https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.zip -o /tmp/codeql.zip && \
+    unzip -q /tmp/codeql.zip -d /opt/codeql && \
+    ln -s /opt/codeql/codeql /usr/local/bin/codeql
+
 WORKDIR /workspace

@@ -1,0 +1,22 @@
+name: CodeQL Scans
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  codeql-scan:
+    name: CodeQL scan
+    runs-on: docker
+    container:
+      image: registry.louhome.xyz/lou-home/ci-tools:latest
+
+    steps:
+      - name: Run CodeQL analysis
+        run: |
+          set -e
+          codeql database create codeql-db --language=python --language=hcl --source-root=.
+          codeql database analyze codeql-db --format=sarif-latest --output=codeql-results.sarif
