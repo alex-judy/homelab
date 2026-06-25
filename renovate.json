@@ -15,8 +15,8 @@
     "customManagers": [
         {
             "customType": "regex",
-            "fileMatch": [
-                "(^|/)Dockerfile$"
+            "managerFilePatterns": [
+                "/(^|/)Dockerfile$/"
             ],
             "matchStrings": [
                 "ARG CODEQL_BUNDLE_TAG=(?<currentValue>codeql-bundle-v[\\d.]+)"
@@ -27,8 +27,8 @@
         },
         {
             "customType": "regex",
-            "fileMatch": [
-                "(^|/)Dockerfile$"
+            "managerFilePatterns": [
+                "/(^|/)Dockerfile$/"
             ],
             "matchStrings": [
                 "ARG ACTIONLINT_VERSION=(?<currentValue>[\\d.]+)"
@@ -38,8 +38,8 @@
         },
         {
             "customType": "regex",
-            "fileMatch": [
-                "(^|/)Dockerfile$"
+            "managerFilePatterns": [
+                "/(^|/)Dockerfile$/"
             ],
             "matchStrings": [
                 "ARG HADOLINT_VERSION=(?<currentValue>[\\d.]+)"
