@@ -1,6 +1,6 @@
 ---
 - name: Deploy Primary Ubuntu VM Stacks
-  hosts: ubuntu_primary
+  hosts: ubuntu-primary
   become: true
 
   vars:
