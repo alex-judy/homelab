@@ -28,6 +28,10 @@ jobs:
           chmod 600 ~/.ssh/homelab-runner
           ssh-keyscan -H 10.0.10.60 >> ~/.ssh/known_hosts
 
+      - name: Install Ansible dependencies
+        run: |
+          ansible-galaxy install -r ansible/requirements.yml
+
       - name: Run deploy playbook
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
