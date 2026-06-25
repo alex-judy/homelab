@@ -14,5 +14,6 @@ http:
           enablePKCE: true
           cookieDomain: '.{{ env "DOMAIN_NAME" }}'
           forceHTTPS: true
+          disableReplayDetection: true
           scopes:
             - roles

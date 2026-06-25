@@ -5,12 +5,41 @@
 
   vars:
     docker_dir: "/opt/docker"
+    compose_root: "/opt/docker/ubuntu-primary/compose-files"
     puid: "1000"
     pgid: "1000"
     tz: "America/New_York"
     domain_name: "louhome.xyz"
 
   tasks:
+    - name: Ensure remote compose directory exists
+      ansible.builtin.file:
+        path: "{{ compose_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Sync compose stacks
+      ansible.posix.synchronize:
+        src: "{{ playbook_dir }}/../../docker/ubuntu-primary/compose-files/"
+        dest: "{{ compose_root }}/"
+        delete: true
+        recursive: true
+
+    - name: Install Doppler CLI
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl -sLf --retry 3 https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key \
+          | gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/doppler-archive-keyring.gpg] \
+          https://packages.doppler.com/public/cli/deb/debian any-version main" \
+          > /etc/apt/sources.list.d/doppler-cli.list
+        apt-get update && apt-get install -y doppler
+      args:
+        executable: /bin/bash
+        creates: /usr/local/bin/doppler
+
     - name: Ensure TRUENAS share mount points exist
       ansible.builtin.file:
         path: "{{ item.mount_point }}"
@@ -20,7 +49,6 @@
         mode: "0755"
       loop: "{{ truenas_shares | default([]) }}"
       when: truenas_shares is defined
-      register: mount_dir_status
       failed_when: false
 
     - name: Mount TRUENAS shares (optional)
@@ -32,7 +60,6 @@
         state: mounted
       loop: "{{ truenas_shares | default([]) }}"
       when: truenas_shares is defined
-      register: mount_status
       failed_when: false
 
     - name: Create Docker networks
@@ -44,29 +71,28 @@
         - socket_proxy
         - db_network
         - download_network
-      register: net_status
       failed_when: false
 
-    - name: Deploy network stack
-      community.docker.docker_compose_v2:
-        project_src: "{{ docker_dir }}/network"
-        state: present
-      environment:
-        TZ: "{{ tz }}"
-        DOCKER_DIR: "{{ docker_dir }}"
+    - name: Find stack directories
+      ansible.builtin.find:
+        paths: "{{ compose_root }}"
+        file_type: directory
+        depth: 1
+      register: stack_dirs
 
-    - name: Deploy management stack
-      community.docker.docker_compose_v2:
-        project_src: "{{ docker_dir }}/management"
-        state: present
+    - name: Deploy each stack
+      ansible.builtin.shell: |
+        set -o pipefail
+        doppler run -- docker compose up -d --pull always --remove-orphans
+      args:
+        executable: /bin/bash
+        chdir: "{{ item.path }}"
       environment:
-        TZ: "{{ tz }}"
-        PUID: "{{ puid }}"
-        PGID: "{{ pgid }}"
-
-    - name: Deploy monitoring stack
-      community.docker.docker_compose_v2:
-        project_src: "{{ docker_dir }}/monitoring"
-        state: present
-      environment:
-        TZ: "{{ tz }}"
+        DOPPLER_TOKEN: "{{ doppler_token }}"
+      loop: "{{ stack_dirs.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+      register: compose_result
+      changed_when: >-
+        'Started' in (compose_result.stdout + compose_result.stderr) or
+        'Recreated' in (compose_result.stdout + compose_result.stderr)

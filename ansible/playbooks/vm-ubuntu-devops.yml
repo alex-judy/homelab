@@ -25,7 +25,12 @@
     - name: Install Doppler CLI
       ansible.builtin.shell: |
         set -o pipefail
-        curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
+        curl -sLf --retry 3 https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key \
+          | gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/doppler-archive-keyring.gpg] \
+          https://packages.doppler.com/public/cli/deb/debian any-version main" \
+          > /etc/apt/sources.list.d/doppler-cli.list
+        apt-get update && apt-get install -y doppler
       args:
         executable: /bin/bash
         creates: /usr/local/bin/doppler
@@ -40,11 +45,16 @@
     - name: Deploy each stack
       ansible.builtin.shell: |
         set -o pipefail
-        doppler run --token={{ doppler_token }} -- docker compose up -d
+        doppler run -- docker compose up -d --pull always --remove-orphans
       args:
         executable: /bin/bash
         chdir: "{{ item.path }}"
+      environment:
+        DOPPLER_TOKEN: "{{ doppler_token }}"
       loop: "{{ stack_dirs.files }}"
       loop_control:
         label: "{{ item.path | basename }}"
-      changed_when: true
+      register: compose_result
+      changed_when: >-
+        'Started' in (compose_result.stdout + compose_result.stderr) or
+        'Recreated' in (compose_result.stdout + compose_result.stderr)

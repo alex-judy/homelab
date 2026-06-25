@@ -9,7 +9,6 @@
     plex_config_path: /var/lib/plexmediaserver
     truenas_nfs_server: "localhost"
     truenas_shares: []
-
   tasks:
     # -------------------------------------------------------------------------
     # System preparation

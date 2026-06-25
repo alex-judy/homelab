@@ -1,0 +1,16 @@
+---
+http:
+  routers:
+    komodo-rtr:
+      entryPoints:
+        - https
+      rule: Host(`komodo.{{ env "DOMAIN_NAME" }}`)
+      service: komodo-svc
+      middlewares:
+        - chain-noauth
+  services:
+    komodo-svc:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://10.0.10.60:9120

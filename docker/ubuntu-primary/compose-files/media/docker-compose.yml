@@ -1,38 +1,6 @@
 ---
 services:
-  # ######### Media and Media Requests ##########
-  # # Doplarr
-  doplarr:
-    image: lscr.io/linuxserver/doplarr:3.8.0
-    container_name: doplarr
-    networks:
-      - traefik_proxy
-    environment:
-      - PUID
-      - PGID
-      - TZ
-      - DISCORD__TOKEN=${DISCORD_TOKEN}
-      - OVERSEERR__API=${OVERSEER_API_KEY}
-      - OVERSEERR__URL=https://overseerr.${DOMAIN_NAME}
-      # - RADARR__API=
-      # - RADARR__URL=
-      # - SONARR__API=
-      # - SONARR__URL=
-      - DISCORD__MAX_RESULTS=25 # optional
-      - DISCORD__REQUESTED_MSG_STYLE=:plain # optional
-      - SONARR__QUALITY_PROFILE= # optional
-      - RADARR__QUALITY_PROFILE= # optional
-      - SONARR__ROOTFOLDER= # optional
-      - RADARR__ROOTFOLDER= # optional
-      - SONARR__LANGUAGE_PROFILE= # optional
-      - OVERSEERR__DEFAULT_ID= # optional
-      - PARTIAL_SEASONS=true # optional
-      - LOG_LEVEL=:info # optional
-      - JAVA_OPTS= # optional
-    volumes:
-      - $DOCKER_DIR/configs/doplarr:/config
-    restart: unless-stopped
-
+  ########## Media and Media Requests ##########
   ## Overseerr
   overseerr:
     # user: $PUID

@@ -9,7 +9,7 @@ on:
     types: [opened, reopened, synchronize]
 jobs:
   security-scan:
-    name: Security checks
+    name: Security Checks
     runs-on: docker
     container:
       image: registry.louhome.xyz/lou-home/ci-tools:latest
@@ -34,7 +34,7 @@ jobs:
       - name: Run Ansible lint
         run: |
           ansible-galaxy install -r ansible/requirements.yml
-          ansible-lint -c ansible/.ansible-lint ansible/
+          ansible-lint ansible/
 
       - name: Run YAML lint
         run: |

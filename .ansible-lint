@@ -1,0 +1,10 @@
+---
+exclude_paths:
+  - ansible.cfg
+  - .ansible-lint
+  - requirements.yml
+  - .ansible
+  - docker/
+  - .pre-commit-config.yaml
+warn_list:
+  - yaml[line-length]

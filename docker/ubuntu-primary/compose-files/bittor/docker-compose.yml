@@ -55,6 +55,7 @@ services:
       - TZ
       - WEBUI_PORT=8085
       - TORRENTING_PORT=6881
+      - UMASK=002
     # ports:
     #   - 8085:8085
     #   - 6881:6881
@@ -72,11 +73,12 @@ services:
       - PUID
       - PGID
       - TZ
+      - UMASK=002
     ports:
       - 8087:8080
     volumes:
       - $DOCKER_DIR/configs/sabnzbd:/config
-      - $DOWNLOADS_DIR/usenet:/downloads # optional
+      - $DOWNLOADS_DIR/usenet:/downloads
     networks:
       - socket_proxy
       - traefik_proxy

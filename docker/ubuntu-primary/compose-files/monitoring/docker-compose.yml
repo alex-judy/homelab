@@ -1,6 +1,6 @@
 ---
 services:
-  # # Dozzle - Real-time Docker Log Viewer
+  ## Dozzle - Real-time Docker Log Viewer
   dozzle:
     image: amir20/dozzle:v10.6
     container_name: dozzle

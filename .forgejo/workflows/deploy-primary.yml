@@ -1,11 +1,11 @@
 ---
-name: Deploy Devops Stacks
+name: Deploy Primary Stacks
 
 on:
   workflow_dispatch: {}
   push:
     paths:
-      - "docker/ubuntu-devops/compose-files/**"
+      - "docker/ubuntu-primary/compose-files/**"
     branches:
       - main
 
@@ -24,7 +24,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/homelab-runner
           chmod 600 ~/.ssh/homelab-runner
-          ssh-keyscan -H 10.0.10.60 >> ~/.ssh/known_hosts
+          ssh-keyscan -H 10.0.10.30 >> ~/.ssh/known_hosts
 
       - name: Install Ansible dependencies
         run: ansible-galaxy install -r ansible/requirements.yml
@@ -32,9 +32,9 @@ jobs:
       - name: Run deploy playbook
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_DEVOPS_TOKEN }}
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_PRIMARY_TOKEN }}
         run: |
-          ansible-playbook ansible/playbooks/vm-ubuntu-devops.yml \
+          ansible-playbook ansible/playbooks/vm-ubuntu-primary.yml \
             -e doppler_token=$DOPPLER_TOKEN \
             --private-key=$HOME/.ssh/homelab-runner \
             -i ansible/inventory/hosts.yml

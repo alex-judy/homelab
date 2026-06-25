@@ -1,6 +1,6 @@
 ---
 services:
-  # ######### Media Automation ##########
+  ########## Media Automation ##########
 
   profilarr:
     image: santiagosayshey/profilarr:v1.1.5
@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
     networks:
       traefik_proxy:
-    # ipv4_address: 192.168.50.245
+        # ipv4_address: 192.168.50.245
     ports:
       - "7878:7878"
     security_opt:
@@ -38,6 +38,7 @@ services:
       - PUID
       - PGID
       - TZ
+      - UMASK=002
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -63,7 +64,7 @@ services:
     restart: unless-stopped
     networks:
       traefik_proxy:
-    # ipv4_address: 192.168.50.248
+        # ipv4_address: 192.168.50.248
     ports:
       - "7879:7878"
     security_opt:
@@ -78,6 +79,7 @@ services:
       - PUID
       - PGID
       - TZ
+      - UMASK=002
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -98,11 +100,11 @@ services:
   ## Sonarr – TV Show Download and Management
   sonarr:
     container_name: sonarr
-    image: linuxserver/sonarr:4.0.18
+    image: linuxserver/sonarr:4.0.17
     restart: unless-stopped
     networks:
       traefik_proxy:
-    # ipv4_address: 192.168.50.246
+        # ipv4_address: 192.168.50.246
     ports:
       - "8989:8989"
     security_opt:
@@ -117,6 +119,7 @@ services:
       - PUID
       - PGID
       - TZ
+      - UMASK=002
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -137,11 +140,11 @@ services:
   ## Sonarr4K – TV Show Download and Management
   sonarr4k:
     container_name: sonarr4k
-    image: linuxserver/sonarr:4.0.18
+    image: linuxserver/sonarr:4.0.17
     restart: unless-stopped
     networks:
       traefik_proxy:
-    # ipv4_address: 192.168.50.247
+        # ipv4_address: 192.168.50.247
     ports:
       - "8987:8989"
     security_opt:
@@ -156,6 +159,7 @@ services:
       - PUID
       - PGID
       - TZ
+      - UMASK=002
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -178,15 +182,15 @@ services:
     container_name: bazarr
     networks:
       traefik_proxy:
-    # ipv4_address: 192.168.50.240
+        # ipv4_address: 192.168.50.240
     environment:
       - PUID
       - PGID
       - TZ
     volumes:
       - $DOCKER_DIR/configs/bazarr:/config
-      - $MEDIA_DIR/movies/HD:/movies # optional
-      - $MEDIA_DIR/tv/HD:/tv # optional
+      - $MEDIA_DIR/movies/HD:/movies #optional
+      - $MEDIA_DIR/tv/HD:/tv #optional
     ports:
       - 6767:6767
     restart: unless-stopped
@@ -203,7 +207,6 @@ services:
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
       ## API Forward Auth Bypass
       - "traefik.http.routers.bazarr-bypass.entrypoints=https"
-      # - "traefik.http.routers.bazarr-bypass.rule=Host(`bazarr.${DOMAIN_NAME}`) && (Header(`X-Api-Key`, `$BAZARR_API_KEY`) || Query(`apikey`, `$BAZARR_API_KEY`))"
       - "traefik.http.routers.bazarr-bypass.priority=20"
       - "traefik.http.routers.bazarr-bypass.service=bazarr-svc"
 
@@ -212,15 +215,15 @@ services:
     container_name: bazarr4k
     networks:
       traefik_proxy:
-    # ipv4_address: 192.168.50.239
+        # ipv4_address: 192.168.50.239
     environment:
       - PUID
       - PGID
       - TZ
     volumes:
       - $DOCKER_DIR/configs/bazarr4k:/config
-      - $MEDIA_DIR/movies/UHD-4K:/movies # optional
-      - $MEDIA_DIR/tv/UHD-4K:/tv # optional
+      - $MEDIA_DIR/movies/UHD-4K:/movies #optional
+      - $MEDIA_DIR/tv/UHD-4K:/tv #optional
     ports:
       - 6768:6767
     restart: unless-stopped
@@ -237,12 +240,11 @@ services:
       - "traefik.http.services.bazarr4k-svc.loadbalancer.server.port=6767"
       ## API Forward Auth Bypass
       - "traefik.http.routers.bazarr4k-bypass.entrypoints=https"
-      # - "traefik.http.routers.bazarr4k-bypass.rule=Host(`bazarr4k.${DOMAIN_NAME}`) && (Header(`X-Api-Key`, `$bazarr4k_API_KEY`) || Query(`apikey`, `$bazarr4k_API_KEY`))"
       - "traefik.http.routers.bazarr4k-bypass.priority=20"
       - "traefik.http.routers.bazarr4k-bypass.service=bazarr4k-svc"
 
   dispatcharr:
-    image: ghcr.io/dispatcharr/dispatcharr:0.27.0
+    image: ghcr.io/dispatcharr/dispatcharr:0.26.0
     container_name: dispatcharr
     networks:
       - traefik_proxy
