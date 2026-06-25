@@ -1,12 +1,18 @@
-- hosts: ubuntu-devops
+---
+- name: Deploy DevOps Stacks
+  hosts: ubuntu-devops
   become: true
+
   vars:
     compose_root: /opt/docker/ubuntu-devops/compose-files
+
   tasks:
     - name: Ensure remote compose directory exists
       ansible.builtin.file:
         path: "{{ compose_root }}"
         state: directory
+        owner: root
+        group: root
         mode: "0755"
 
     - name: Sync compose stacks
@@ -18,8 +24,10 @@
 
     - name: Install Doppler CLI
       ansible.builtin.shell: |
+        set -o pipefail
         curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
       args:
+        executable: /bin/bash
         creates: /usr/local/bin/doppler
 
     - name: Find stack directories
@@ -31,9 +39,12 @@
 
     - name: Deploy each stack
       ansible.builtin.shell: |
+        set -o pipefail
         doppler run --token={{ doppler_token }} -- docker compose up -d
       args:
+        executable: /bin/bash
         chdir: "{{ item.path }}"
       loop: "{{ stack_dirs.files }}"
       loop_control:
         label: "{{ item.path | basename }}"
+      changed_when: true

@@ -1,15 +1,14 @@
+---
 - name: Setup Plex Media Server LXC
   hosts: plex
   become: true
 
   vars:
-    plex_claim_token: "" # Get from https://www.plex.tv/claim/
+    plex_claim_token: ""
     media_mount_path: /mnt/media
     plex_config_path: /var/lib/plexmediaserver
-    # List of TrueNAS NFS shares to mount. Each item should have:
-    #   src: "<server>:/path"
-    #   mount_point: "/mnt/target"
-    # truenas_shares: []
+    truenas_nfs_server: "localhost"
+    truenas_shares: []
 
   tasks:
     # -------------------------------------------------------------------------
@@ -17,35 +16,38 @@
     # -------------------------------------------------------------------------
 
     - name: Wait for system to be ready
-      wait_for_connection:
+      ansible.builtin.wait_for_connection:
         timeout: 300
       tags: [install, update]
 
     - name: Remove conflicting Plex repository sources
-      shell: |
+      ansible.builtin.shell: |
+        set -o pipefail
         rm -f /etc/apt/sources.list.d/plexmediaserver.sources
         rm -f /etc/apt/sources.list.d/plexmediaserver.list
         apt-key del 0x8C4DC61A42F14E0F14C25BF7D83EF8E83DE5BE80 2>/dev/null || true
         apt-key del plexmediaserver 2>/dev/null || true
         rm -f /usr/share/keyrings/plexmediaserver.gpg
+      args:
+        executable: /bin/bash
       changed_when: false
       tags: [install, update]
 
     - name: Update apt cache
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
       tags: [install, update]
 
     - name: Upgrade packages
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
-        autoremove: yes
-        autoclean: yes
+        autoremove: true
+        autoclean: true
       tags: [install, update]
 
     - name: Install dependencies
-      apt:
+      ansible.builtin.apt:
         name:
           - nfs-common
           - gpg
@@ -59,47 +61,51 @@
     # -------------------------------------------------------------------------
 
     - name: Query TrueNAS export list
-      shell: showmount -e {{ truenas_nfs_server }}
+      ansible.builtin.command: showmount -e {{ truenas_nfs_server }}
       register: truenas_exports
       changed_when: false
       failed_when: false
       tags: [install, update, nfs, debug]
 
     - name: Display TrueNAS exports
-      debug:
+      ansible.builtin.debug:
         var: truenas_exports.stdout_lines
       tags: [debug, nfs]
 
     - name: Warn if a requested share is not in the export list
-      debug:
+      ansible.builtin.debug:
         msg: "WARNING: {{ item.src }} not found in TrueNAS export list — mount will likely fail."
-      loop: "{{ truenas_shares | default([]) }}"
+      loop: "{{ truenas_shares }}"
       when:
-        - truenas_shares | default([]) | length > 0
+        - truenas_shares | length > 0
         - item.src.split(':')[1] not in (truenas_exports.stdout | default(''))
       tags: [install, update, nfs]
 
     - name: Ensure mount points exist
-      shell: mkdir -p {{ item.mount_point }}
-      loop: "{{ truenas_shares | default([]) }}"
-      when: truenas_shares | default([]) | length > 0
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ item.mount_point }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop: "{{ truenas_shares }}"
+      when: truenas_shares | length > 0
       tags: [install, update, nfs]
 
     - name: Mount TrueNAS NFS shares
-      mount:
+      ansible.posix.mount:
         path: "{{ item.mount_point }}"
         src: "{{ item.src }}"
         fstype: nfs
         opts: "defaults,vers=3,_netdev"
         state: mounted
-      loop: "{{ truenas_shares | default([]) }}"
-      when: truenas_shares | default([]) | length > 0
+      loop: "{{ truenas_shares }}"
+      when: truenas_shares | length > 0
       register: mount_results
       tags: [install, update, nfs]
 
     - name: Warn if a share failed to mount
-      debug:
+      ansible.builtin.debug:
         msg: "WARNING: failed to mount {{ item.item.src }} at {{ item.item.mount_point }}"
       loop: "{{ mount_results.results | default([]) }}"
       when:
@@ -112,34 +118,34 @@
     # -------------------------------------------------------------------------
 
     - name: Add Plex repository key
-      apt_key:
+      ansible.builtin.get_url:
         url: https://downloads.plex.tv/plex-keys/PlexSign.key
-        keyring: /usr/share/keyrings/plexmediaserver.gpg
-        state: present
+        dest: /usr/share/keyrings/plexmediaserver.gpg
+        mode: "0644"
       tags: [install, update]
 
     - name: Add Plex repository
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: "deb [signed-by=/usr/share/keyrings/plexmediaserver.gpg] https://downloads.plex.tv/repo/deb public main"
         state: present
         filename: plexmediaserver
       tags: [install, update]
 
     - name: Install Plex Media Server
-      apt:
+      ansible.builtin.apt:
         name: plexmediaserver
         state: present
       tags: [install, update]
 
     - name: Ensure Plex service is enabled and started
-      systemd:
+      ansible.builtin.systemd:
         name: plexmediaserver
-        enabled: yes
+        enabled: true
         state: started
       tags: [install, update]
 
     - name: Wait for Plex to be ready
-      wait_for:
+      ansible.builtin.wait_for:
         host: localhost
         port: 32400
         delay: 5
@@ -151,34 +157,28 @@
     # -------------------------------------------------------------------------
 
     - name: Check if server is already claimed
-      uri:
+      ansible.builtin.uri:
         url: "http://localhost:32400/identity"
-        return_content: yes
+        return_content: true
       register: plex_identity
       failed_when: false
       changed_when: false
       tags: [install, update]
 
     - name: Claim Plex server
-      uri:
-        url: "http://localhost:32400/myplex/claim?token={{ plex_claim_token }}"
-        method: POST
-        status_code: [200, 201]
-      when:
-        - plex_claim_token != ""
-        - plex_identity.status != 200
-      ignore_errors: true
-      tags: [install, update]
+      ansible.builtin.command: /usr/lib/plexmediaserver/Plex_Media_Server --claim {{ plex_claim_token }}
+      register: plex_out
+      changed_when: "'claimed' in plex_out.stdout"
 
     # -------------------------------------------------------------------------
     # Summary
     # -------------------------------------------------------------------------
 
     - name: Display Plex access information
-      debug:
+      ansible.builtin.debug:
         msg:
           - "Plex Media Server installed successfully!"
           - "Access locally at: http://{{ ansible_host }}:32400/web"
-          - "Mounted shares: {{ truenas_shares | default([]) | map(attribute='mount_point') | list }}"
+          - "Mounted shares: {{ truenas_shares | map(attribute='mount_point') | list }}"
           - "To claim server: set plex_claim_token and re-run the playbook"
       tags: [install, update]

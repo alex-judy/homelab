@@ -1,10 +1,11 @@
+---
 http:
   middlewares:
     chain-oauth:
       chain:
         middlewares:
           # Apply authentication first so auth handlers see the original request
-          - oidc-auth          
+          - oidc-auth
           - crowdsec
     chain-noauth:
       chain:

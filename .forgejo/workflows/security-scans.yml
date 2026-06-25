@@ -1,3 +1,4 @@
+---
 name: Security Checks
 
 on:
@@ -6,39 +7,43 @@ on:
       - main
   pull_request:
     types: [opened, reopened, synchronize]
-
 jobs:
   security-scan:
     name: Security checks
     runs-on: docker
     container:
       image: registry.louhome.xyz/lou-home/ci-tools:latest
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_DEVOPS_TOKEN }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run secret scan and dependency audit
         run: |
-          ggshield secret scan repo
+          doppler run -- ggshield secret scan repo .
           if [ -f requirements.txt ] || [ -f pyproject.toml ]; then
             pip-audit
           fi
 
+      - name: Run shell script lint
+        run: |
+          find . -type f -name '*.sh' | sort | xargs -r shellcheck
+
       - name: Run Ansible lint
         run: |
-          ansible-lint ansible/
+          ansible-galaxy install -r ansible/requirements.yml
+          ansible-lint -c ansible/.ansible-lint ansible/
 
       - name: Run YAML lint
         run: |
-          yamllint -c /dev/null .
-
-      - name: Run workflow lint
-        run: |
-          find . -path "./.forgejo/workflows/*.yml" | sort | xargs -r actionlint
+          yamllint .
 
       - name: Run Terraform security scans
         run: |
-          tfsec terraform/
           checkov -d terraform/
 
       - name: Run Dockerfile lint
         run: |
-          find docker ci -type f \( -name 'Dockerfile' -o -name '*Dockerfile*' \) | sort | xargs -r hadolint
+          find docker ci -type f \( -name 'Dockerfile' -o -name '*Dockerfile*' \) | sort | xargs -r hadolint --config .hadolint.yml

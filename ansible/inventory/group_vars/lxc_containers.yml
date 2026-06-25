@@ -1,3 +1,4 @@
+---
 # Defaults for LXC containers
 beszel_web_port: 8090
 beszel_hub_port: 45876

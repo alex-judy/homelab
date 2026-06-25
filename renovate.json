@@ -8,7 +8,45 @@
         "after 5am"
     ],
     "enabledManagers": [
-        "docker-compose"
+        "docker-compose",
+        "dockerfile",
+        "custom.regex"
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "(^|/)Dockerfile$"
+            ],
+            "matchStrings": [
+                "ARG CODEQL_BUNDLE_TAG=(?<currentValue>codeql-bundle-v[\\d.]+)"
+            ],
+            "datasourceTemplate": "github-releases",
+            "depNameTemplate": "github/codeql-action",
+            "extractVersionTemplate": "^codeql-bundle-v(?<version>.*)$"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "(^|/)Dockerfile$"
+            ],
+            "matchStrings": [
+                "ARG ACTIONLINT_VERSION=(?<currentValue>[\\d.]+)"
+            ],
+            "datasourceTemplate": "github-releases",
+            "depNameTemplate": "rhysd/actionlint"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "(^|/)Dockerfile$"
+            ],
+            "matchStrings": [
+                "ARG HADOLINT_VERSION=(?<currentValue>[\\d.]+)"
+            ],
+            "datasourceTemplate": "github-releases",
+            "depNameTemplate": "hadolint/hadolint"
+        }
     ],
     "packageRules": [
         {
@@ -43,6 +81,17 @@
             ],
             "groupName": "docker major updates",
             "groupSlug": "docker-major-updates",
+            "automerge": false
+        },
+        {
+            "matchDatasources": [
+                "github-releases"
+            ],
+            "matchPackageNames": [
+                "github/codeql-action"
+            ],
+            "groupName": "codeql bundle",
+            "groupSlug": "codeql-bundle",
             "automerge": false
         }
     ]

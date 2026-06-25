@@ -1,7 +1,8 @@
+---
 services:
-  ########## Other ##########
+  # ######### Other ##########
 
-  ## VSCode - VSCode Editing
+  # # VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
     image: linuxserver/code-server:4.123.0
@@ -22,7 +23,7 @@ services:
       - TZ
       # - PASSWORD=GjhnTkLerv49Qp #optional
       # - HASHED_PASSWORD= #optional
-      - SUDO_PASSWORD=${VSCODE_PASSWORD} #optional
+      - SUDO_PASSWORD=${VSCODE_PASSWORD} # optional
       # - SUDO_PASSWORD_HASH= #optional
       - PROXY_DOMAIN=vscode.${DOMAIN_NAME}
       - DEFAULT_WORKSPACE=$HOME
@@ -151,7 +152,7 @@ services:
     ports:
       - "8891:8080"
     volumes:
-      - $DOCKER_DIR/data/stirling:/usr/share/tesseract-ocr/5/tessdata #Required for extra OCR languages
+      - $DOCKER_DIR/data/stirling:/usr/share/tesseract-ocr/5/tessdata # Required for extra OCR languages
       - $DOCKER_DIR/configs/stirling:/configs
     #      - /location/of/customFiles:/customFiles/
     #      - /location/of/logs:/logs/

@@ -1,0 +1,15 @@
+extends: default
+
+ignore:
+  - /node_modules/
+  - /ansible/.ansible/
+  - /.venv/
+  - /.forgejo/
+  - /.vscode/
+  - .yamllint
+  - .cache_ggshield
+
+rules:
+  line-length:
+    max: 160
+    level: warning

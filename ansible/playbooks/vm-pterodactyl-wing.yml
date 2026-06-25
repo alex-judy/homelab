@@ -1,3 +1,4 @@
+---
 - name: Install and configure Pterodactyl Wings (VM)
   hosts: pterodactyl-wing
   become: true
@@ -10,7 +11,7 @@
 
   tasks:
     - name: Update apt cache and upgrade packages
-      apt:
+      ansible.builtin.apt:
         update_cache: true
         upgrade: dist
       tags:
@@ -18,7 +19,7 @@
         - update
 
     - name: Install curl package
-      apt:
+      ansible.builtin.apt:
         name: curl
         state: present
       tags:
@@ -26,35 +27,44 @@
         - update
 
     - name: Create /etc/docker directory
-      file:
+      ansible.builtin.file:
         path: /etc/docker
         state: directory
+        owner: root
+        group: root
+        mode: "0755"
       tags:
         - install
         - update
 
     - name: Configure Docker daemon settings
-      copy:
+      ansible.builtin.copy:
         dest: /etc/docker/daemon.json
         content: |
           {
             "log-driver": "journald"
           }
-      notify: restart docker
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart docker
       tags:
         - install
         - update
 
-    - name: Install Docker
-      shell: curl -fsSL https://get.docker.com | sh
+    - name: Install Docker via official convenience script
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl -fsSL https://get.docker.com | sh
       args:
+        executable: /bin/bash
         creates: /usr/bin/docker
       tags:
         - install
         - update
 
     - name: Enable and start Docker service
-      systemd:
+      ansible.builtin.systemd:
         name: docker
         enabled: true
         state: started
@@ -62,28 +72,42 @@
         - install
         - update
 
-    - name: Get latest Wings binary
-      shell: |
-        ARCH=$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")
-        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${ARCH}"
-      args:
-        creates: /usr/local/bin/wings
+    - name: Create Pterodactyl configuration directory
+      ansible.builtin.file:
+        path: /etc/pterodactyl
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
       tags:
         - install
         - update
-      notify:
-        - restart wings
+
+    - name: Get latest Wings binary
+      ansible.builtin.shell: |
+        set -o pipefail
+        ARCH=$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")
+        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${ARCH}"
+      args:
+        executable: /bin/bash
+        creates: /usr/local/bin/wings
+      notify: Restart wings
+      tags:
+        - install
+        - update
 
     - name: Make Wings binary executable
-      file:
+      ansible.builtin.file:
         path: /usr/local/bin/wings
+        owner: root
+        group: root
         mode: "0755"
       tags:
         - install
         - update
 
     - name: Check if Wings config exists
-      stat:
+      ansible.builtin.stat:
         path: /etc/pterodactyl/config.yml
       register: wings_config
       tags:
@@ -91,7 +115,7 @@
         - update
 
     - name: Warn if Wings config is missing
-      debug:
+      ansible.builtin.debug:
         msg: |
           WARNING: /etc/pterodactyl/config.yml does not exist!
           This file must be generated from your Pterodactyl Panel:
@@ -105,24 +129,19 @@
         - install
         - update
 
-    - name: Create Pterodactyl configuration directory
-      file:
-        path: /etc/pterodactyl
-        state: directory
-      tags:
-        - install
-        - update
-
     - name: Create Wings runtime directory
-      file:
+      ansible.builtin.file:
         path: /var/run/wings
         state: directory
+        owner: root
+        group: root
+        mode: "0755"
       tags:
         - install
         - update
 
     - name: Copy Wings systemd service file
-      copy:
+      ansible.builtin.copy:
         dest: /etc/systemd/system/wings.service
         content: |
           [Unit]
@@ -144,13 +163,16 @@
 
           [Install]
           WantedBy=multi-user.target
-      notify: reload systemd
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd
       tags:
         - install
         - update
 
     - name: Enable and start Wings service
-      systemd:
+      ansible.builtin.systemd:
         name: wings
         enabled: true
         state: started
@@ -159,16 +181,16 @@
         - update
 
   handlers:
-    - name: restart docker
-      systemd:
+    - name: Restart docker
+      ansible.builtin.systemd:
         name: docker
         state: restarted
 
-    - name: restart wings
-      systemd:
+    - name: Restart wings
+      ansible.builtin.systemd:
         name: wings
         state: restarted
 
-    - name: reload systemd
-      systemd:
+    - name: Reload systemd
+      ansible.builtin.systemd:
         daemon_reload: true

@@ -1,31 +1,32 @@
+---
 - name: Common LXC Container Setup
   hosts: lxc_containers
   become: true
 
   tasks:
     - name: Wait for system to be ready
-      wait_for_connection:
+      ansible.builtin.wait_for_connection:
         timeout: 300
 
     - name: Update apt cache
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
       tags:
         - install
         - update
 
     - name: Upgrade all packages
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
-        autoremove: yes
-        autoclean: yes
+        autoremove: true
+        autoclean: true
       tags:
         - install
         - update
 
     - name: Install common packages
-      apt:
+      ansible.builtin.apt:
         name:
           - curl
           - wget
@@ -38,7 +39,7 @@
           - gnupg
           - lsb-release
           - software-properties-common
-          - nfs-common # For NFS mounts
+          - nfs-common
           - tzdata
           - util-linux
         state: present
@@ -46,26 +47,15 @@
         - install
         - update
 
-    - name: Set timezone
-      file:
-        src: "/usr/share/zoneinfo/{{ timezone | default('America/Chicago') }}"
-        dest: /etc/localtime
-        state: link
-        force: yes
-      tags:
-        - install
-        - update
-
-    - name: Write /etc/timezone
-      copy:
-        content: "{{ timezone | default('America/Chicago') }}\n"
-        dest: /etc/timezone
+    - name: Set system timezone
+      community.general.timezone:
+        name: "{{ timezone | default('America/Chicago') }}"
       tags:
         - install
         - update
 
     - name: Configure unattended upgrades
-      apt:
+      ansible.builtin.apt:
         name:
           - unattended-upgrades
           - apt-listchanges
@@ -75,23 +65,25 @@
         - update
 
     - name: Enable unattended upgrades
-      copy:
+      ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/20auto-upgrades
         content: |
           APT::Periodic::Update-Package-Lists "1";
           APT::Periodic::Unattended-Upgrade "1";
           APT::Periodic::AutocleanInterval "7";
+        owner: root
+        group: root
         mode: "0644"
       tags:
         - install
         - update
 
-    - name: Disable IPv6 (optional, if you don't use it)
-      sysctl:
+    - name: Disable IPv6
+      ansible.posix.sysctl:
         name: "{{ item }}"
         value: "1"
         state: present
-        reload: yes
+        reload: true
       loop:
         - net.ipv6.conf.all.disable_ipv6
         - net.ipv6.conf.default.disable_ipv6

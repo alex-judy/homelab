@@ -1,3 +1,4 @@
+---
 # Main playbook to configure all resources
 - name: Configure all LXC containers
   hosts: lxc_containers
@@ -5,23 +6,28 @@
 
   tasks:
     - name: Display starting message
-      debug:
+      ansible.builtin.debug:
         msg: "Starting configuration of {{ inventory_hostname }}"
 
 # Common setup for all containers
-- import_playbook: lxc-common.yml
+- name: Import common setup configuration
+  import_playbook: lxc-common.yml
 
 # Service-specific playbooks
-- import_playbook: lxc-tailscale.yml
+- name: Import Tailscale setup configuration
+  import_playbook: lxc-tailscale.yml
   tags: ["tailscale"]
 
-- import_playbook: lxc-plex.yml
+- name: Import Plex setup configuration
+  import_playbook: lxc-plex.yml
   tags: ["plex"]
 
-- import_playbook: lxc-beszel.yml
+- name: Import Beszel setup configuration
+  import_playbook: lxc-beszel.yml
   tags: ["beszel"]
 
-- import_playbook: lxc-forgejo.yml
+- name: Import Forgejo setup configuration
+  import_playbook: lxc-forgejo.yml
   tags: ["forgejo"]
 
 - name: Configuration complete
@@ -29,7 +35,7 @@
   gather_facts: false
   tasks:
     - name: Display completion message
-      debug:
+      ansible.builtin.debug:
         msg:
           - "============================================"
           - "All LXC containers configured successfully!"

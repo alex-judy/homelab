@@ -1,9 +1,10 @@
+---
 # .forgejo/workflows/build-ci-image.yml
 name: Build CI Tools Image
 
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: "0 1 * * *"
   workflow_dispatch: {}
   push:
     paths:
@@ -35,9 +36,16 @@ jobs:
         env:
           DOCKER_CONFIG: ${{ github.workspace }}/.docker
         run: |
-          # Use buildx explicitly and pass the --push flag
           docker buildx build \
             --push \
+            --cache-from type=registry,ref=registry.louhome.xyz/lou-home/ci-tools:buildcache \
+            --cache-to type=registry,ref=registry.louhome.xyz/lou-home/ci-tools:buildcache,mode=max \
             -t registry.louhome.xyz/lou-home/ci-tools:latest \
             -t registry.louhome.xyz/lou-home/ci-tools:${{ github.sha }} \
             ci/images/ci-tools/
+
+      - name: Prune Buildx and Build Cache
+        if: always()
+        run: |-
+          docker builder prune -a -f
+          docker system prune -f

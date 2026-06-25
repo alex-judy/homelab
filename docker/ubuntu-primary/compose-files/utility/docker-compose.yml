@@ -1,3 +1,4 @@
+---
 x-defaults: &default-settings
   restart: unless-stopped
   networks:
@@ -7,11 +8,11 @@ x-defaults: &default-settings
 
 services:
 
-  ########## Docker Utilities ##########
+  # ######### Docker Utilities ##########
 
-  ## Watchtower
+  # # Watchtower
   # https://hub.docker.com/r/containrrr/watchtower
-  # 
+  #
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:1.7.1
@@ -19,37 +20,37 @@ services:
     networks:
       - traefik_proxy
       - socket_proxy
-    environment: 
+    environment:
       # Set to true for testing configuration changes
-      WATCHTOWER_RUN_ONCE: false 
+      WATCHTOWER_RUN_ONCE: false
       DOCKER_HOST: tcp://socket-proxy:2375
       # Run at 1AM every Monday
-      WATCHTOWER_SCHEDULE: "0 0 1 * * 1" 
+      WATCHTOWER_SCHEDULE: "0 0 1 * * 1"
       TZ: TZ
-      WATCHTOWER_CLEANUP: true 
-      WATCHTOWER_DEBUG: true     
+      WATCHTOWER_CLEANUP: true
+      WATCHTOWER_DEBUG: true
       WATCHTOWER_NOTIFICATION_REPORT: true
       WATCHTOWER_NOTIFICATION_URL: ${DISCORD_WATCHTOWER_WEBHOOK}
       WATCHTOWER_NOTIFICATION_TEMPLATE: |-
-          {{- if .Report -}}
-            {{- with .Report -}}
-          {{len .Scanned}} Scanned, {{len .Updated}} Updated, {{len .Failed}} Failed
-                {{- range .Updated}}
-          - {{.Name}} ({{.ImageName}}): {{.CurrentImageID.ShortID}} updated to {{.LatestImageID.ShortID}}
-                {{- end -}}
-                {{- range .Fresh}}
-          - {{.Name}} ({{.ImageName}}): {{.State}}
+        {{- if .Report -}}
+          {{- with .Report -}}
+        {{len .Scanned}} Scanned, {{len .Updated}} Updated, {{len .Failed}} Failed
+              {{- range .Updated}}
+        - {{.Name}} ({{.ImageName}}): {{.CurrentImageID.ShortID}} updated to {{.LatestImageID.ShortID}}
               {{- end -}}
-              {{- range .Skipped}}
-          - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
-              {{- end -}}
-              {{- range .Failed}}
-          - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
-              {{- end -}}
+              {{- range .Fresh}}
+        - {{.Name}} ({{.ImageName}}): {{.State}}
             {{- end -}}
-          {{- else -}}
-            {{range .Entries -}}{{.Message}}{{"\n"}}{{- end -}}
+            {{- range .Skipped}}
+        - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
+            {{- end -}}
+            {{- range .Failed}}
+        - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
+            {{- end -}}
           {{- end -}}
+        {{- else -}}
+          {{range .Entries -}}{{.Message}}{{"\n"}}{{- end -}}
+        {{- end -}}
 
   ## Who Am I?? - Show Headers
   whoami:
@@ -76,8 +77,8 @@ services:
     container_name: speedtest
     image: openspeedtest/latest
     ports:
-      - '3010:3000'
-      - '3011:3001'
+      - "3010:3000"
+      - "3011:3001"
     labels:
       - "traefik.enable=true"
       # HTTP Routers
@@ -88,7 +89,7 @@ services:
       ## HTTP Services
       - "traefik.http.routers.speedtest-rtr.service=speedtest-svc"
       - "traefik.http.services.speedtest-svc.loadbalancer.server.port=3000"
-      
+
 networks:
   traefik_proxy:
     external: true

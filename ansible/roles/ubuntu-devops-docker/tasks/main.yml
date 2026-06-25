@@ -1,5 +1,6 @@
+---
 - name: Install APT prerequisites
-  apt:
+  ansible.builtin.apt:
     name:
       - apt-transport-https
       - ca-certificates
@@ -7,7 +8,7 @@
       - gnupg
       - lsb-release
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Add Docker official GPG key
   ansible.builtin.apt_key:
@@ -21,34 +22,34 @@
     filename: docker
 
 - name: Install Docker packages
-  apt:
+  ansible.builtin.apt:
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
       - docker-compose-plugin
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Ensure docker service is enabled and running
-  service:
+  ansible.builtin.service:
     name: docker
     state: started
-    enabled: yes
+    enabled: true
 
 - name: Ensure docker group exists
-  group:
+  ansible.builtin.group:
     name: docker
     state: present
 
 - name: Add user to docker group
-  user:
+  ansible.builtin.user:
     name: "{{ docker_user }}"
     groups: docker
-    append: yes
+    append: true
 
 - name: Create compose directory
-  file:
+  ansible.builtin.file:
     path: "{{ compose_dir }}"
     state: directory
     owner: root
@@ -59,15 +60,15 @@
   ansible.posix.synchronize:
     src: "{{ compose_source_dir }}/"
     dest: "{{ compose_dir }}/"
-    recursive: yes
-    delete: yes
+    recursive: true
+    delete: true
     rsync_opts:
       - "--chown=root:root"
       - "--exclude=runner/"
   register: sync_result
 
 - name: Create Forgejo runner data directory
-  file:
+  ansible.builtin.file:
     path: "{{ compose_dir }}/runner/data"
     state: directory
     owner: "1001"
@@ -75,7 +76,7 @@
     mode: "0755"
 
 - name: Create Forgejo runner cache directory
-  file:
+  ansible.builtin.file:
     path: "{{ compose_dir }}/runner/data/.cache"
     state: directory
     owner: "1001"
@@ -89,21 +90,21 @@
     owner: "1001"
     group: "1001"
     mode: "02775"
-    recurse: yes
+    recurse: true
 
 - name: Check for local runner config file
-  stat:
+  ansible.builtin.stat:
     path: "{{ compose_source_dir }}/runner/runner-config.yml"
   register: local_runner_config
   delegate_to: localhost
 
 - name: Check if runner config already exists on target
-  stat:
+  ansible.builtin.stat:
     path: "{{ compose_dir }}/runner/data/runner-config.yml"
   register: remote_runner_config
 
 - name: Copy local Forgejo runner config
-  copy:
+  ansible.builtin.copy:
     src: "{{ compose_source_dir }}/runner/runner-config.yml"
     dest: "{{ compose_dir }}/runner/data/runner-config.yml"
     owner: "1001"
@@ -114,7 +115,7 @@
   no_log: true
 
 - name: Generate Forgejo runner config from template when none exists
-  template:
+  ansible.builtin.template:
     src: runner-config.yml.j2
     dest: "{{ compose_dir }}/runner/data/runner-config.yml"
     owner: "1001"
@@ -127,7 +128,7 @@
   no_log: true
 
 - name: Ensure Forgejo runner environment file exists
-  file:
+  ansible.builtin.file:
     path: "{{ compose_dir }}/runner/data/.env"
     state: touch
     owner: "1001"
@@ -135,18 +136,18 @@
     mode: "0644"
 
 - name: Verify Forgejo runner config file exists
-  stat:
+  ansible.builtin.stat:
     path: "{{ compose_dir }}/runner/data/runner-config.yml"
   register: verify_runner_config
 
 - name: Fail if Forgejo runner config was not created
-  assert:
+  ansible.builtin.assert:
     that:
       - verify_runner_config.stat.exists
     fail_msg: "Runner config file was not created at {{ compose_dir }}/runner/data/runner-config.yml"
 
 - name: Generate runner registration fingerprint
-  copy:
+  ansible.builtin.copy:
     dest: "{{ compose_dir }}/runner/data/.runner-registration-hash"
     content: "{{ [forgejo_runner_url, forgejo_runner_token, forgejo_runner_name, forgejo_runner_labels | join(',')] | join('|') }}"
     owner: "1001"
@@ -160,12 +161,12 @@
     - forgejo_runner_name != ""
 
 - name: Check if runner registration file exists on target
-  stat:
+  ansible.builtin.stat:
     path: "{{ compose_dir }}/runner/data/.runner"
   register: remote_runner_registration
 
 - name: Remove existing Forgejo runner registration when registration state has changed
-  file:
+  ansible.builtin.file:
     path: "{{ compose_dir }}/runner/data/.runner"
     state: absent
   when:
@@ -177,16 +178,14 @@
       (runner_registration_fingerprint_result.changed | default(false))
 
 - name: Register Forgejo runner if not already registered or if registration state changed
-  shell: |
+  ansible.builtin.shell: |
     docker run --rm -u 1001:1001 -v "{{ compose_dir }}/runner/data:/data" \
       --workdir /data data.forgejo.org/forgejo/runner:12 \
       forgejo-runner register --config /data/runner-config.yml \
         --token "{{ forgejo_runner_token }}" \
         --name "{{ forgejo_runner_name }}" \
         --instance "{{ forgejo_runner_url }}" \
-      {%- if forgejo_runner_labels | length > 0 %}
-        --labels "{{ forgejo_runner_labels | join(',') }}" \
-      {%- endif %}
+        {% if forgejo_runner_labels | length > 0 %}--labels "{{ forgejo_runner_labels | join(',') }}" \{% endif %}
         --no-interactive
   args:
     executable: /bin/bash

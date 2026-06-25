@@ -1,3 +1,4 @@
+---
 # Role variables for ubuntu-devops-docker
 compose_dir: /opt/docker
 compose_filename: docker-compose.yml

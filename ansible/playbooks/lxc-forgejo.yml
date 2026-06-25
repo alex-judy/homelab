@@ -1,3 +1,4 @@
+---
 - name: Setup Forgejo LXC
   hosts: forgejo
   become: true
@@ -8,34 +9,35 @@
     _forgejo_http_port: "{{ forgejo_http_port | default(3000) }}"
     _forgejo_ssh_port: "{{ forgejo_ssh_port | default(22) }}"
     _forgejo_domain: "{{ forgejo_domain | default(ansible_host) }}"
-    _forgejo_root_url: "{{ forgejo_root_url | default('http://' ~ ansible_host ~ ':' ~ (forgejo_http_port | default(3000)) ~ '/') }}"
+    _forgejo_root_url: "{{ forgejo_root_url | default('http://' ~ ansible_host ~ ':' ~ (_forgejo_http_port) ~ '/') }}"
     forgejo_os: "{{ ansible_system | lower }}"
     forgejo_arch: >-
       {{ ansible_architecture | regex_replace('x86_64','amd64') |
          regex_replace('armv6l|armv7l','arm') |
          regex_replace('aarch64','arm64') }}
-    forgejo_filename: "forgejo-{{ (forgejo_version | default('14.0.3')) }}-{{ forgejo_os }}-{{ forgejo_arch }}"
+    forgejo_version_target: "{{ forgejo_version | default('14.0.3') }}"
+    forgejo_filename: "forgejo-{{ forgejo_version_target }}-{{ forgejo_os }}-{{ forgejo_arch }}"
     _forgejo_verify: "{{ forgejo_verify | default(false) }}"
     _forgejo_user: "{{ forgejo_user | default('forgejo') }}"
 
   tasks:
     - name: Wait for system to be ready
-      wait_for_connection:
+      ansible.builtin.wait_for_connection:
         timeout: 300
 
     - name: Update apt cache
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
 
     - name: Upgrade packages
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
-        autoremove: yes
-        autoclean: yes
+        autoremove: true
+        autoclean: true
 
     - name: Install runtime dependencies
-      apt:
+      ansible.builtin.apt:
         name:
           - curl
           - wget
@@ -44,15 +46,15 @@
         state: present
 
     - name: Ensure Forgejo service user exists
-      user:
+      ansible.builtin.user:
         name: "{{ _forgejo_user }}"
-        system: yes
-        createhome: yes
+        system: true
+        createhome: true
         home: "/home/{{ _forgejo_user }}"
         shell: /usr/sbin/nologin
 
     - name: Create Forgejo user .ssh directory
-      file:
+      ansible.builtin.file:
         path: "/home/{{ _forgejo_user }}/.ssh"
         state: directory
         owner: "{{ _forgejo_user }}"
@@ -60,7 +62,7 @@
         mode: "0700"
 
     - name: Create install directory
-      file:
+      ansible.builtin.file:
         path: "{{ install_dir }}"
         state: directory
         owner: root
@@ -68,7 +70,7 @@
         mode: "0755"
 
     - name: Create data directory
-      file:
+      ansible.builtin.file:
         path: "{{ data_dir }}"
         state: directory
         owner: "{{ _forgejo_user }}"
@@ -76,15 +78,11 @@
         mode: "0755"
 
     - name: Download Forgejo binary (install/update)
-      get_url:
-        url: >-
-          {{ forgejo_binary_url | default(
-            'https://codeberg.org/forgejo/forgejo/releases/download/v' ~
-            (forgejo_version | default('14.0.3')) ~ '/' ~ forgejo_filename)
-          }}
+      ansible.builtin.get_url:
+        url: "{{ forgejo_binary_url | default('https://codeberg.org/forgejo/forgejo/releases/download/v' ~ forgejo_version_target ~ '/' ~ forgejo_filename) }}"
         dest: "/tmp/{{ forgejo_filename }}"
         mode: "0755"
-        force: yes
+        force: true
       register: forgejo_download
       retries: 5
       delay: 10
@@ -94,73 +92,69 @@
         - update
 
     - name: Optionally download GPG signature
-      get_url:
-        url: "{{ forgejo_binary_url }}.asc"
+      ansible.builtin.get_url:
+        url: "{{ forgejo_binary_url |
+           default('https://codeberg.org/forgejo/forgejo/releases/download/v' ~ forgejo_version_target ~ '/' ~ forgejo_filename) }}.asc"
         dest: "/tmp/{{ forgejo_filename }}.asc"
         mode: "0644"
-        force: yes
+        force: true
       when: _forgejo_verify
       tags:
         - install
 
     - name: Verify Forgejo binary signature
-      block:
-        - name: import Forgejo public key
-          command: gpg --keyserver keys.openpgp.org --recv EB114F5E6C0DC2BCDD183550A4B61A2DC5923710
-          changed_when: false
-          args:
-            warn: false
-        - name: check signature
-          command: gpg --verify /tmp/{{ forgejo_filename }}.asc /tmp/{{ forgejo_filename }}
-          register: gpg_check
-          args:
-            warn: false
-          failed_when: "'OK' not in gpg_check.stderr"
       when: _forgejo_verify
       tags:
         - install
+      block:
+        - name: Import Forgejo public key
+          ansible.builtin.command: gpg --keyserver keys.openpgp.org --recv EB114F5E6C0DC2BCDD183550A4B61A2DC5923710
+          changed_when: false
+
+        - name: Check signature
+          ansible.builtin.command: gpg --verify /tmp/{{ forgejo_filename }}.asc /tmp/{{ forgejo_filename }}
+          register: gpg_check
+          changed_when: false
+          failed_when: "'OK' not in gpg_check.stderr"
 
     - name: Check if Forgejo binary already exists in install directory
-      stat:
+      ansible.builtin.stat:
         path: "{{ install_dir }}/forgejo"
       register: forgejo_installed
 
     - name: Copy Forgejo binary into install directory
-      copy:
+      ansible.builtin.copy:
         src: "/tmp/{{ forgejo_filename }}"
         dest: "{{ install_dir }}/forgejo"
         mode: "0755"
-        remote_src: yes
+        remote_src: true
       when: forgejo_download.changed or not forgejo_installed.stat.exists
       tags:
         - install
         - update
 
     - name: Ensure Forgejo binary is executable
-      file:
+      ansible.builtin.file:
         path: "{{ install_dir }}/forgejo"
         mode: "0755"
         owner: root
         group: root
 
     - name: Create Forgejo custom config directory
-      file:
+      ansible.builtin.file:
         path: "{{ data_dir }}/custom/conf"
         state: directory
         owner: "{{ _forgejo_user }}"
         group: "{{ _forgejo_user }}"
         mode: "0750"
 
-    # Write app.ini only if it doesn't exist to avoid overwriting
-    # user-configured settings on subsequent runs. Use the update_config
-    # tag to force overwrite when intentionally changing config.
     - name: Check if app.ini already exists
-      stat:
+      ansible.builtin.stat:
         path: "{{ data_dir }}/custom/conf/app.ini"
       register: appini_stat
 
     - name: Write Forgejo app.ini
-      copy:
+      ansible.builtin.copy:
         dest: "{{ data_dir }}/custom/conf/app.ini"
         owner: "{{ _forgejo_user }}"
         group: "{{ _forgejo_user }}"
@@ -186,13 +180,13 @@
           LEVEL     = info
           ROOT_PATH = {{ data_dir }}/log
       when: not appini_stat.stat.exists
-      notify: restart forgejo
+      notify: Restart forgejo
       tags:
         - install
         - update_config
 
     - name: Create systemd unit for Forgejo
-      copy:
+      ansible.builtin.copy:
         dest: /etc/systemd/system/forgejo.service
         content: |
           [Unit]
@@ -214,34 +208,27 @@
         owner: root
         group: root
         mode: "0644"
-      notify: restart forgejo
-
-    - name: Reload systemd to pick up unit file
-      systemd:
-        daemon_reload: yes
+      notify:
+        - Reload systemd
+        - Restart forgejo
 
     - name: Ensure forgejo service enabled and started
-      systemd:
+      ansible.builtin.systemd:
         name: forgejo
-        enabled: yes
+        enabled: true
         state: started
 
-    # --- SSH passthrough configuration ---
-    # This wires sshd into Forgejo's key lookup API so that keys registered
-    # in the Forgejo UI are validated at connection time without relying on
-    # the authorized_keys file being kept in sync.
-
     - name: Configure sshd AuthorizedKeysCommand for Forgejo
-      blockinfile:
+      ansible.builtin.blockinfile:
         path: /etc/ssh/sshd_config
         marker: "# {mark} ANSIBLE MANAGED - Forgejo SSH passthrough"
         block: |
           AuthorizedKeysCommand {{ install_dir }}/forgejo --config={{ data_dir }}/custom/conf/app.ini keys -e git -u %u -t %t -k %k
           AuthorizedKeysCommandUser {{ _forgejo_user }}
-      notify: restart sshd
+      notify: Restart sshd
 
     - name: Display Forgejo deployment info
-      debug:
+      ansible.builtin.debug:
         msg:
           - "Forgejo installed at {{ install_dir }}"
           - "Data directory: {{ data_dir }}"
@@ -250,12 +237,16 @@
           - "Root URL: {{ _forgejo_root_url }}"
 
   handlers:
-    - name: restart forgejo
-      systemd:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart forgejo
+      ansible.builtin.systemd:
         name: forgejo
         state: restarted
 
-    - name: restart sshd
-      systemd:
+    - name: Restart sshd
+      ansible.builtin.systemd:
         name: ssh
         state: restarted

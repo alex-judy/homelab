@@ -1,44 +1,36 @@
-- name: Update every service in the homelab
-  hosts: all
-  become: true
+---
+# Main orchestrator to update all homelab services.
+# Runs only the tasks tagged "update".
+# Execute with: ansible-playbook playbooks/update-services.yml
 
-  # this playbook simply includes the individual service playbooks
-  # and runs only the tasks tagged "update"; it can be executed
-  # with `ansible-playbook playbooks/update-services.yml` or with
-  # `--tags update` if you also want to limit to a subset of services.
+- name: Import common update configuration
+  import_playbook: lxc-common.yml
+  tags: ["update"]
 
-- import_playbook: lxc-common.yml
-  tags:
-    - update
+- name: Import Beszel update configuration
+  import_playbook: lxc-beszel.yml
+  tags: ["update"]
 
-- import_playbook: lxc-beszel.yml
-  tags:
-    - update
+- name: Import Plex update configuration
+  import_playbook: lxc-plex.yml
+  tags: ["update"]
 
-- import_playbook: lxc-plex.yml
-  tags:
-    - update
+- name: Import Pterodactyl Panel update configuration
+  import_playbook: lxc-pterodactyl-panel.yml
+  tags: ["update"]
 
-- import_playbook: lxc-pterodactyl-panel.yml
-  tags:
-    - update
+- name: Import Pterodactyl Wing update configuration
+  import_playbook: vm-pterodactyl-wing.yml
+  tags: ["update"]
 
-- import_playbook: vm-pterodactyl-wing.yml
-  tags:
-    - update
+- name: Import Forgejo update configuration
+  import_playbook: lxc-forgejo.yml
+  tags: ["update"]
 
-- import_playbook: lxc-forgejo.yml
-  tags:
-    - update
+- name: Import Tailscale update configuration
+  import_playbook: lxc-tailscale.yml
+  tags: ["update"]
 
-- import_playbook: lxc-tailscale.yml
-  tags:
-    - update
-
-- import_playbook: vm-ubuntu-primary.yml
-  tags:
-    - update
-
-- import_playbook: proxmox-update.yml
-  tags:
-    - update
+- name: Import Primary Ubuntu VM update configuration
+  import_playbook: vm-ubuntu-primary.yml
+  tags: ["update"]

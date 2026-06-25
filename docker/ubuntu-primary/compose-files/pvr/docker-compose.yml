@@ -1,5 +1,6 @@
+---
 services:
-  ########## Media Automation ##########
+  # ######### Media Automation ##########
 
   profilarr:
     image: santiagosayshey/profilarr:v1.1.4
@@ -22,7 +23,7 @@ services:
     restart: unless-stopped
     networks:
       traefik_proxy:
-        # ipv4_address: 192.168.50.245
+    # ipv4_address: 192.168.50.245
     ports:
       - "7878:7878"
     security_opt:
@@ -62,7 +63,7 @@ services:
     restart: unless-stopped
     networks:
       traefik_proxy:
-        # ipv4_address: 192.168.50.248
+    # ipv4_address: 192.168.50.248
     ports:
       - "7879:7878"
     security_opt:
@@ -101,7 +102,7 @@ services:
     restart: unless-stopped
     networks:
       traefik_proxy:
-        # ipv4_address: 192.168.50.246
+    # ipv4_address: 192.168.50.246
     ports:
       - "8989:8989"
     security_opt:
@@ -140,7 +141,7 @@ services:
     restart: unless-stopped
     networks:
       traefik_proxy:
-        # ipv4_address: 192.168.50.247
+    # ipv4_address: 192.168.50.247
     ports:
       - "8987:8989"
     security_opt:
@@ -177,15 +178,15 @@ services:
     container_name: bazarr
     networks:
       traefik_proxy:
-        # ipv4_address: 192.168.50.240
+    # ipv4_address: 192.168.50.240
     environment:
       - PUID
       - PGID
       - TZ
     volumes:
       - $DOCKER_DIR/configs/bazarr:/config
-      - $MEDIA_DIR/movies/HD:/movies #optional
-      - $MEDIA_DIR/tv/HD:/tv #optional
+      - $MEDIA_DIR/movies/HD:/movies # optional
+      - $MEDIA_DIR/tv/HD:/tv # optional
     ports:
       - 6767:6767
     restart: unless-stopped
@@ -211,15 +212,15 @@ services:
     container_name: bazarr4k
     networks:
       traefik_proxy:
-        # ipv4_address: 192.168.50.239
+    # ipv4_address: 192.168.50.239
     environment:
       - PUID
       - PGID
       - TZ
     volumes:
       - $DOCKER_DIR/configs/bazarr4k:/config
-      - $MEDIA_DIR/movies/UHD-4K:/movies #optional
-      - $MEDIA_DIR/tv/UHD-4K:/tv #optional
+      - $MEDIA_DIR/movies/UHD-4K:/movies # optional
+      - $MEDIA_DIR/tv/UHD-4K:/tv # optional
     ports:
       - 6768:6767
     restart: unless-stopped

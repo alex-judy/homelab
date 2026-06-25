@@ -1,7 +1,8 @@
+---
 services:
-  ########## Network Stack ##########
+  # ######### Network Stack ##########
 
-  ## Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  # # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy:v0.4.2
@@ -106,7 +107,7 @@ services:
     networks:
       cloudflared:
       traefik_proxy:
-        # ipv4_address: 192.168.200.2
+      # ipv4_address: 192.168.200.2
       socket_proxy:
     ports:
       - "80:80"

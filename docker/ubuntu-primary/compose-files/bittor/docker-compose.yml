@@ -1,3 +1,4 @@
+---
 services:
   gluetun:
     image: qmcgaw/gluetun:pr-3361
@@ -75,7 +76,7 @@ services:
       - 8087:8080
     volumes:
       - $DOCKER_DIR/configs/sabnzbd:/config
-      - $DOWNLOADS_DIR/usenet:/downloads #optional
+      - $DOWNLOADS_DIR/usenet:/downloads # optional
     networks:
       - socket_proxy
       - traefik_proxy

@@ -1,3 +1,4 @@
+---
 services:
   docker-in-docker:
     image: docker:dind
