@@ -5,7 +5,7 @@ services:
   # # VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
-    image: linuxserver/code-server:4.123.0
+    image: linuxserver/code-server:4.126.0
     container_name: vscode
     restart: always
     networks:
@@ -110,7 +110,7 @@ services:
 
   filebrowser:
     container_name: filebrowser
-    image: gtstef/filebrowser:1.4.4-beta
+    image: gtstef/filebrowser:1.5.0-beta
     restart: unless-stopped
     networks:
       - traefik_proxy
@@ -144,7 +144,7 @@ services:
 
   stirling-pdf:
     container_name: stirling
-    image: stirlingtools/stirling-pdf:2.12.0
+    image: stirlingtools/stirling-pdf:2.13.2
     restart: always
     networks:
       - traefik_proxy
@@ -213,7 +213,7 @@ services:
       - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.19.2
+    image: ghcr.io/mealie-recipes/mealie:v3.20.0
     container_name: mealie
     networks:
       - traefik_proxy

@@ -6,7 +6,7 @@ services:
   portainer:
     # user: $PUID
     container_name: portainer
-    image: portainer/portainer-ee:2.42.0
+    image: portainer/portainer-ee:2.43.0
     restart: always
     command: -H tcp://socket-proxy:2375
     networks:

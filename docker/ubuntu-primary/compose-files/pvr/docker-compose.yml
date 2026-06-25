@@ -3,7 +3,7 @@ services:
   # ######### Media Automation ##########
 
   profilarr:
-    image: santiagosayshey/profilarr:v1.1.4
+    image: santiagosayshey/profilarr:v1.1.5
     container_name: profilarr
     ports:
       - 6868:6868
@@ -98,7 +98,7 @@ services:
   ## Sonarr – TV Show Download and Management
   sonarr:
     container_name: sonarr
-    image: linuxserver/sonarr:4.0.17
+    image: linuxserver/sonarr:4.0.18
     restart: unless-stopped
     networks:
       traefik_proxy:
@@ -137,7 +137,7 @@ services:
   ## Sonarr4K – TV Show Download and Management
   sonarr4k:
     container_name: sonarr4k
-    image: linuxserver/sonarr:4.0.17
+    image: linuxserver/sonarr:4.0.18
     restart: unless-stopped
     networks:
       traefik_proxy:
@@ -242,7 +242,7 @@ services:
       - "traefik.http.routers.bazarr4k-bypass.service=bazarr4k-svc"
 
   dispatcharr:
-    image: ghcr.io/dispatcharr/dispatcharr:0.26.0
+    image: ghcr.io/dispatcharr/dispatcharr:0.27.0
     container_name: dispatcharr
     networks:
       - traefik_proxy
