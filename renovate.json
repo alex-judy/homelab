@@ -50,6 +50,11 @@
     ],
     "packageRules": [
         {
+            "matchDatasources": ["docker"],
+            "matchPackagePatterns": ["^lscr.io/linuxserver/"],
+            "versioning": "loose"
+        },
+        {
             "matchDatasources": [
                 "docker"
             ],

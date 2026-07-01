@@ -1,7 +1,7 @@
 ---
 services:
   gluetun:
-    image: qmcgaw/gluetun:pr-3361
+    image: qmcgaw/gluetun:v3.41.1
     container_name: vpn
     restart: always
     cap_add:
@@ -17,7 +17,7 @@ services:
       - VPN_SERVICE_PROVIDER=private internet access
       - OPENVPN_USER=${PIA_USER}
       - OPENVPN_PASSWORD=${PIA_PASSWORD}
-      - SERVER_REGIONS=US Chicago
+      - SERVER_REGIONS=US Chicago,US East,US West
     ports:
       # qbittorrent
       - 8085:8085 # qbittorrent web ui

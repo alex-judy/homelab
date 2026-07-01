@@ -7,10 +7,14 @@ on:
     - cron: "0 1 * * *"
   workflow_dispatch: {}
   push:
-    paths:
-      - "ci/images/ci-tools/Dockerfile"
     branches:
       - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_run:
+    workflows: ["Build CI Tools Image"]
+    types:
+      - completed
 
 jobs:
   build:

@@ -17,6 +17,6 @@ jobs:
           RENOVATE_ENDPOINT: https://forgejo.louhome.xyz/api/v1/
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
           RENOVATE_AUTODISCOVER: "false"
-          RENOVATE_REPOSITORIES: '["alex/homelab"]'
+          RENOVATE_REPOSITORIES: '["lou-home/homelab"]'
           GITHUB_COM_TOKEN: ${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}
         run: renovate
