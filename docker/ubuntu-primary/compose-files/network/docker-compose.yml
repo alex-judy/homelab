@@ -56,7 +56,7 @@ services:
   ## Traefik - Reverse Proxy
   traefik:
     container_name: traefik
-    image: traefik:v3.7.5
+    image: traefik:v3.7.6
     # profiles:
     #   - traefik-network
     restart: always

@@ -1,7 +1,7 @@
 ---
 services:
   tracearr:
-    image: ghcr.io/connorgallopo/tracearr@sha256:ca93988326c26597e0d9c91d69c0f97e7ed23c517cf327c22bc7f188002af998
+    image: ghcr.io/connorgallopo/tracearr@sha256:5ffd5c792945a9929c853a2428e0c378a2244be783c99c3f4fb8c37900b0c1c8
     container_name: tracearr
     ports:
       - "3001:3000"
@@ -40,7 +40,7 @@ services:
     # TimescaleDB HA with PostgreSQL 18 and Toolkit
     # PostgreSQL 18 features: AIO for 3x I/O performance, UUIDv7, temporal constraints
     # Note: ~1.5GB image size (includes Patroni, backup tools, many extensions)
-    image: timescale/timescaledb:2.28.1-pg18
+    image: timescale/timescaledb:2.28.2-pg18
     container_name: tracearr-db
     shm_size: 512mb # Required for PostgreSQL shared memory (increase for large imports)
     ulimits:
