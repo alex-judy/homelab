@@ -115,7 +115,7 @@ services:
 
   stirling-pdf:
     container_name: stirling
-    image: stirlingtools/stirling-pdf:2.13.2
+    image: stirlingtools/stirling-pdf:2.14.0
     restart: always
     networks:
       - traefik_proxy
@@ -184,7 +184,7 @@ services:
       - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.19.2
+    image: ghcr.io/mealie-recipes/mealie:v3.20.1
     container_name: mealie
     networks:
       - traefik_proxy
