@@ -37,8 +37,8 @@
 
     - name: Add Docker apt repository
       ansible.builtin.apt_repository:
-        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu
-          {{ ansible_distribution_release }} stable"
+        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc]
+           https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
         filename: docker
 
@@ -127,7 +127,7 @@
 
     - name: Sync docker files
       ansible.posix.synchronize:
-        src: "{{ playbook_dir }}/../../docker/ubuntu-primary/"
+        src: "{{ repo_root | default(playbook_dir ~ '/../../') }}/docker/ubuntu-primary/"
         dest: "{{ docker_dir }}/"
         delete: true
         recursive: true

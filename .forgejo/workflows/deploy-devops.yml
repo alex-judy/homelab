@@ -5,7 +5,7 @@ on:
   workflow_dispatch: {}
   push:
     paths:
-      - "docker/ubuntu-devops/compose-files/**"
+      - "docker/ubuntu-devops/**"
     branches:
       - main
 
@@ -40,5 +40,6 @@ jobs:
             -e doppler_token=$DOPPLER_TOKEN \
             -e docker_dir=$DOCKER_DIR \
             -e domain_name=$DOMAIN_NAME \
+            -e repo_root=$FORGEJO_WORKSPACE \
             --private-key=$HOME/.ssh/homelab-runner \
             -i ansible/inventory/hosts.yml

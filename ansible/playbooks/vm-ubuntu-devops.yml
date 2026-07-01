@@ -35,8 +35,8 @@
 
     - name: Add Docker apt repository
       ansible.builtin.apt_repository:
-        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu
-          {{ ansible_distribution_release }} stable"
+        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc]
+           https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
         filename: docker
 
@@ -84,10 +84,24 @@
         - "{{ docker_dir }}/data/komodo-mongo"
         - "{{ docker_dir }}/data/komodo-mongo/config"
         - "{{ docker_dir }}/data/komodo-periphery"
+        - "{{ docker_dir }}/data/docker-dind"
+
+    - name: Create DinD daemon.json
+      ansible.builtin.copy:
+        content: |
+          {
+            "experimental": true,
+            "features": {
+              "containerd-snapshotter": true
+            }
+          }
+        dest: "{{ docker_dir }}/data/docker-dind/config/daemon.json"
+        mode: "0644"
+        force: true
 
     - name: Sync docker files
       ansible.posix.synchronize:
-        src: "{{ playbook_dir }}/../../docker/ubuntu-devops/"
+        src: "{{ repo_root | default(playbook_dir ~ '/../../') }}/docker/ubuntu-devops/"
         dest: "{{ docker_dir }}/"
         delete: true
         recursive: true

@@ -35,7 +35,17 @@ jobs:
         env:
           DOCKER_CONFIG: ${{ github.workspace }}/.docker
         run: |
+          docker buildx rm workflow-builder || true
+
+          docker buildx create --name workflow-builder \
+            --use \
+            --driver docker-container \
+            --driver-opt "network=host"
+
+          docker buildx inspect --bootstrap
+
           docker buildx build \
+            --builder workflow-builder \
             --push \
             --cache-from type=registry,ref=registry.louhome.xyz/lou-home/ci-tools:buildcache \
             --cache-to type=registry,ref=registry.louhome.xyz/lou-home/ci-tools:buildcache,mode=max \

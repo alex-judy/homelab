@@ -4,10 +4,15 @@ services:
     image: docker:dind
     container_name: docker_dind
     privileged: true
+    dns:
+      - 10.0.10.1
     ports:
       - "2375:2375"
     command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
     restart: unless-stopped
+    volumes:
+      - $DOCKER_DIR/data/docker-dind:/var/lib/docker
+      - $DOCKER_DIR/data/docker-dind/config:/etc/docker
 
   runner:
     image: data.forgejo.org/forgejo/runner:12
