@@ -65,7 +65,7 @@ services:
       - $DOWNLOADS_DIR/torrents:/downloads
 
   sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:5.0.4-ls258
+    image: lscr.io/linuxserver/sabnzbd:5.1.0-unstable
     restart: unless-stopped
     container_name: sabnzbd
     # network_mode: service:gluetun
