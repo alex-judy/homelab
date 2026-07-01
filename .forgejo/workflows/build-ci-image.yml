@@ -7,9 +7,13 @@ on:
     - cron: "0 1 * * *"
   workflow_dispatch: {}
   push:
+    paths:
+      - "ci/images/ci-tools/**"
     branches:
       - main
   pull_request:
+    paths:
+      - "ci/images/ci-tools/**"
     types: [opened, reopened, synchronize]
   workflow_run:
     workflows: ["Build CI Tools Image"]

@@ -18,6 +18,7 @@ services:
 
   komodo-postgres:
     image: ghcr.io/ferretdb/postgres-documentdb:17-0.107.0
+    container_name: komodo-postgres
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers
     restart: unless-stopped
