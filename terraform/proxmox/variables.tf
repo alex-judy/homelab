@@ -279,7 +279,7 @@ variable "ubuntu_devops_server_primary_memory" {
 variable "ubuntu_devops_server_primary_disk" {
   description = "Disk size for Ubuntu DevOps server primary"
   type        = number
-  default     = 30
+  default     = 60
 }
 
 ### Pterodactyl Wing VM configuration

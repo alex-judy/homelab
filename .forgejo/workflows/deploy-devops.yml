@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: docker
+    runs-on: ubuntu-latest
     container:
       image: registry.louhome.xyz/lou-home/ci-tools:latest
     steps:
@@ -33,8 +33,12 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_DEVOPS_TOKEN }}
+          DOCKER_DIR: ${{ vars.DOCKER_DIR }}
+          DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}
         run: |
           ansible-playbook ansible/playbooks/vm-ubuntu-devops.yml \
             -e doppler_token=$DOPPLER_TOKEN \
+            -e docker_dir=$DOCKER_DIR \
+            -e domain_name=$DOMAIN_NAME \
             --private-key=$HOME/.ssh/homelab-runner \
             -i ansible/inventory/hosts.yml

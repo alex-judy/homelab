@@ -4,23 +4,95 @@
   become: true
 
   vars:
-    compose_root: /opt/docker/ubuntu-devops/compose-files
+    docker_dir: "/opt/docker"
+    puid: "1000"
+    pgid: "1000"
+    tz: "America/New_York"
+    ansible_distribution_release: "resolute"
 
   tasks:
-    - name: Ensure remote compose directory exists
+    - name: Install Docker prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Create keyrings directory
       ansible.builtin.file:
-        path: "{{ compose_root }}"
+        path: /etc/apt/keyrings
         state: directory
-        owner: root
-        group: root
         mode: "0755"
 
-    - name: Sync compose stacks
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+        force: false
+
+    - name: Add Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker Engine and Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Ensure docker service is enabled and running
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add ubuntu user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Fail if docker_dir is not a safe absolute path
+      ansible.builtin.assert:
+        that:
+          - docker_dir is defined
+          - docker_dir | length > 1
+          - docker_dir is match('^/opt/.+')
+        fail_msg: "docker_dir resolved to an unsafe value: '{{ docker_dir }}'"
+
+    - name: Ensure app data directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ puid }}"
+        group: "{{ pgid }}"
+        mode: "0775"
+      loop:
+        - "{{ docker_dir }}/data/runner"
+        - "{{ docker_dir }}/data/komodo-core"
+        - "{{ docker_dir }}/data/komodo-mongo"
+        - "{{ docker_dir }}/data/komodo-mongo/config"
+        - "{{ docker_dir }}/data/komodo-periphery"
+
+    - name: Sync docker files
       ansible.posix.synchronize:
-        src: "{{ playbook_dir }}/../../docker/ubuntu-devops/compose-files/"
-        dest: "{{ compose_root }}/"
+        src: "{{ playbook_dir }}/../../docker/ubuntu-devops/"
+        dest: "{{ docker_dir }}/"
         delete: true
         recursive: true
+        rsync_opts:
+          - "--exclude=data/"
 
     - name: Install Doppler CLI
       ansible.builtin.shell: |
@@ -35,9 +107,17 @@
         executable: /bin/bash
         creates: /usr/local/bin/doppler
 
+    - name: Create Docker networks
+      community.docker.docker_network:
+        name: "{{ item }}"
+        driver: bridge
+      loop:
+        - socket_proxy
+      failed_when: false
+
     - name: Find stack directories
       ansible.builtin.find:
-        paths: "{{ compose_root }}"
+        paths: "{{ docker_dir }}/compose-files"
         file_type: directory
         depth: 1
       register: stack_dirs
@@ -45,12 +125,14 @@
     - name: Deploy each stack
       ansible.builtin.shell: |
         set -o pipefail
-        doppler run -- docker compose up -d --pull always --remove-orphans
+        doppler run -- docker compose up -d --remove-orphans
       args:
         executable: /bin/bash
         chdir: "{{ item.path }}"
       environment:
         DOPPLER_TOKEN: "{{ doppler_token }}"
+        DOCKER_DIR: "{{ docker_dir }}"
+        DOMAIN_NAME: "{{ domain_name }}"
       loop: "{{ stack_dirs.files }}"
       loop_control:
         label: "{{ item.path | basename }}"

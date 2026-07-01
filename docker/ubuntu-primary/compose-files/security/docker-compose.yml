@@ -21,8 +21,8 @@ services:
     volumes:
       - /var/log/auth.log:/var/log/auth.log:ro
       - /var/log/syslog:/var/log/syslog:ro
-      - $DOCKER_DIR/traefik/logs:/var/log/traefik:ro
-      - $DOCKER_DIR/data/crowdsec/data:/var/lib/crowdsec/data
+      - $DOCKER_DIR/data/traefik/logs:/var/log/traefik:ro
+      - $DOCKER_DIR/data/crowdsec:/var/lib/crowdsec/data
       - $DOCKER_DIR/data/crowdsec/config:/etc/crowdsec
     restart: unless-stopped
 
@@ -33,15 +33,19 @@ services:
     networks:
       - traefik_proxy
       - socket_proxy
+    ports:
+      - "1411:1411"
     environment:
       # adjust these
       - APP_URL=https://auth.${DOMAIN_NAME}
       - TRUST_PROXY=true
       - COOKIE_DOMAIN=.${DOMAIN_NAME}
       - ENCRYPTION_KEY=${POCKETID_ENCRYPTION_KEY}
+      - PUID
+      - PGID
       # other env vars (DB, etc) as needed
     volumes:
-      - $DOCKER_DIR/data/pocketid/data:/app/data
+      - $DOCKER_DIR/data/pocketid:/app/data
     labels:
       # Traefik Labels
       - "traefik.enable=true"
@@ -49,7 +53,7 @@ services:
       - "traefik.http.routers.pocketid-rtr.entrypoints=https"
       - "traefik.http.routers.pocketid-rtr.rule=Host(`auth.${DOMAIN_NAME}`)"
       # Middlewares
-      - "traefik.http.routers.pocketid-rtr.middlewares=chain-noauth@file"
+      # - "traefik.http.routers.pocketid-rtr.middlewares=chain-noauth@file"
       # HTTP Services
       - "traefik.http.routers.pocketid-rtr.service=pocketid-svc"
       - "traefik.http.services.pocketid-svc.loadbalancer.server.port=1411"

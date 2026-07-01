@@ -3,7 +3,7 @@ services:
   docker-in-docker:
     image: docker:dind
     extra_hosts:
-      - "registry.louhome.xyz:10.0.10.30"
+      - "registry.${DOMAIN_NAME}:10.0.10.30"
     container_name: docker_dind
     privileged: true
     ports:
@@ -14,14 +14,17 @@ services:
   runner:
     image: data.forgejo.org/forgejo/runner:12
     extra_hosts:
-      - "registry.louhome.xyz:10.0.10.30"
+      - "registry.${DOMAIN_NAME}:10.0.10.30"
     container_name: runner
     restart: unless-stopped
-    user: "1001:1001"
+    user: "1000:1000"
     depends_on:
       docker-in-docker:
         condition: service_started
+    # ADD THIS ENVIRONMENT SECTION:
+    environment:
+      - DOCKER_HOST=tcp://127.0.0.1:2375
     volumes:
-      - /opt/docker/runner/data:/data
+      - $DOCKER_DIR/data/runner:/data
     network_mode: "host"
     command: ["forgejo-runner", "-c", "/data/runner-config.yml", "daemon"]

@@ -10,7 +10,7 @@ on:
 jobs:
   security-scan:
     name: Security Checks
-    runs-on: docker
+    runs-on: ubuntu-latest
     container:
       image: registry.louhome.xyz/lou-home/ci-tools:latest
     env:

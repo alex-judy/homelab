@@ -14,26 +14,32 @@ resource "proxmox_virtual_environment_vm" "ubuntu_devops" {
   acpi = true
 
   agent {
-    enabled = false # Note: Ensure qemu-guest-agent is installed on your template image!
+    enabled = false
   }
 
-  bios       = "seabios"
+  machine    = "q35"
+  bios       = "ovmf"
   boot_order = ["scsi0", "net0"]
 
   cpu {
-    cores   = var.ubuntu_devops_server_primary_cores
+    cores   = 4
     sockets = 1
     type    = "x86-64-v3"
     numa    = false
   }
 
   memory {
-    dedicated = var.ubuntu_devops_server_primary_memory
+    dedicated = 4096
   }
 
   clone {
     vm_id = proxmox_virtual_environment_vm.ubuntu_template.id
     full  = true
+  }
+
+  efi_disk {
+    datastore_id = "local-lvm"
+    type         = "4m"
   }
 
   disk {
@@ -57,10 +63,12 @@ resource "proxmox_virtual_environment_vm" "ubuntu_devops" {
 
   initialization {
     datastore_id = "local-lvm"
-    interface    = "ide2" # Creates the temporary cloud-init ISO drive
+    interface    = "ide2"
 
     user_account {
-      keys = local.ssh_public_keys
+      username = "ubuntu"
+      keys     = local.ssh_public_keys
+      password = onepassword_item.ubuntu_devops_vm.password
     }
 
     ip_config {
@@ -73,8 +81,6 @@ resource "proxmox_virtual_environment_vm" "ubuntu_devops" {
     dns {
       servers = split(",", var.dns_servers)
     }
-
-    user_data_file_id = proxmox_virtual_environment_file.ubuntu_devops_cloud_init.id
   }
 
   tags = ["public", "devops"]
@@ -85,35 +91,5 @@ resource "proxmox_virtual_environment_vm" "ubuntu_devops" {
       started,
       serial_device
     ]
-  }
-}
-
-resource "proxmox_virtual_environment_file" "ubuntu_devops_cloud_init" {
-  content_type = "snippets"
-  datastore_id = "local" # 'local' storage typically supports snippets by default in Proxmox
-  node_name    = var.proxmox_node
-
-  source_raw {
-    file_name = "ubuntu-devops-user-data.yaml"
-    data      = <<EOF
-#cloud-config
-hostname: ubuntu-devops
-manage_etc_hosts: true
-ssh_pwauth: true
-
-users:
-  - name: alex
-    groups: sudo
-    shell: /bin/bash
-    sudo: 'ALL=(ALL) NOPASSWD:ALL'
-    ssh_authorized_keys:
-      - ${var.ssh_public_key}
-    lock_passwd: false
-
-chpasswd:
-  list: |
-    alex:${onepassword_item.ubuntu_devops_vm.password}
-  expire: false
-EOF
   }
 }

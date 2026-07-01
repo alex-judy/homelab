@@ -1,31 +1,138 @@
 ---
 - name: Deploy Primary Ubuntu VM Stacks
-  hosts: ubuntu-primary
+  hosts: ubuntu-server-primary
   become: true
 
   vars:
     docker_dir: "/opt/docker"
-    compose_root: "/opt/docker/ubuntu-primary/compose-files"
     puid: "1000"
-    pgid: "1000"
+    pgid: "1001"
     tz: "America/New_York"
-    domain_name: "louhome.xyz"
+    ansible_distribution_release: "resolute"
+    downloads_dir: "/mnt/downloads"
+    media_dir: "/mnt/media"
 
   tasks:
-    - name: Ensure remote compose directory exists
+    - name: Install Docker prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Create keyrings directory
       ansible.builtin.file:
-        path: "{{ compose_root }}"
+        path: /etc/apt/keyrings
         state: directory
-        owner: root
-        group: root
         mode: "0755"
 
-    - name: Sync compose stacks
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+        force: false
+
+    - name: Add Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker Engine and Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Ensure docker service is enabled and running
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add ubuntu user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Fail if docker_dir is unset
+      ansible.builtin.assert:
+        that:
+          - docker_dir is defined
+          - docker_dir | length > 0
+          - docker_dir != "/"
+        fail_msg: "docker_dir resolved to an unsafe value: '{{ docker_dir }}'"
+
+    - name: Ensure app data directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ puid }}"
+        group: "{{ pgid }}"
+        mode: "0775"
+      loop:
+        - "{{ docker_dir }}/data/traefik"
+        - "{{ docker_dir }}/data/crowdsec"
+        - "{{ docker_dir }}/data/crowdsec/config"
+        - "{{ docker_dir }}/data/pocketid"
+        - "{{ docker_dir }}/data/gluetun"
+        - "{{ docker_dir }}/data/qbittorrent"
+        - "{{ docker_dir }}/data/sabnzbd"
+        - "{{ docker_dir }}/data/prowlarr"
+        - "{{ docker_dir }}/data/homepage"
+        - "{{ docker_dir }}/data/overseerr"
+        - "{{ docker_dir }}/data/tracearr"
+        - "{{ docker_dir }}/data/tracearr-db"
+        - "{{ docker_dir }}/data/tracearr-redis"
+        - "{{ docker_dir }}/data/traefik"
+        - "{{ docker_dir }}/data/traefik/rules"
+        - "{{ docker_dir }}/data/traefik/logs"
+        - "{{ docker_dir }}/data/traefik/acme"
+        - "{{ docker_dir }}/data/vscode"
+        - "{{ docker_dir }}/data/filebrowser"
+        - "{{ docker_dir }}/data/stirling"
+        - "{{ docker_dir }}/data/stirling/tessdata"
+        - "{{ docker_dir }}/data/paperless"
+        - "{{ docker_dir }}/data/paperless/media"
+        - "{{ docker_dir }}/data/paperless/consume"
+        - "{{ docker_dir }}/data/paperless/export"
+        - "{{ docker_dir }}/data/paperless-redis"
+        - "{{ docker_dir }}/data/mealie"
+        - "{{ docker_dir }}/data/profilarr"
+        - "{{ docker_dir }}/data/sonarr"
+        - "{{ docker_dir }}/data/sonarr4k"
+        - "{{ docker_dir }}/data/radarr"
+        - "{{ docker_dir }}/data/radarr4k"
+        - "{{ docker_dir }}/data/bazarr"
+        - "{{ docker_dir }}/data/bazarr4k"
+        - "{{ docker_dir }}/data/dispatcharr"
+
+    - name: Ensure Traefik acme.json exists with strict permissions
+      ansible.builtin.file:
+        path: "{{ docker_dir }}/data/traefik/acme/acme.json"
+        state: touch
+        owner: "{{ puid }}"
+        group: "{{ pgid }}"
+        mode: "0600"
+
+    - name: Sync docker files
       ansible.posix.synchronize:
-        src: "{{ playbook_dir }}/../../docker/ubuntu-primary/compose-files/"
-        dest: "{{ compose_root }}/"
+        src: "{{ playbook_dir }}/../../docker/ubuntu-primary/"
+        dest: "{{ docker_dir }}/"
         delete: true
         recursive: true
+        rsync_opts:
+          - "--exclude=data/"
 
     - name: Install Doppler CLI
       ansible.builtin.shell: |
@@ -75,7 +182,7 @@
 
     - name: Find stack directories
       ansible.builtin.find:
-        paths: "{{ compose_root }}"
+        paths: "{{ docker_dir }}/compose-files"
         file_type: directory
         depth: 1
       register: stack_dirs
@@ -83,12 +190,16 @@
     - name: Deploy each stack
       ansible.builtin.shell: |
         set -o pipefail
-        doppler run -- docker compose up -d --pull always --remove-orphans
+        doppler run -- docker compose up -d --remove-orphans
       args:
         executable: /bin/bash
         chdir: "{{ item.path }}"
       environment:
         DOPPLER_TOKEN: "{{ doppler_token }}"
+        DOCKER_DIR: "{{ docker_dir }}"
+        DOMAIN_NAME: "{{ domain_name }}"
+        DOWNLOADS_DIR: "{{ downloads_dir }}"
+        MEDIA_DIR: "{{ media_dir }}"
       loop: "{{ stack_dirs.files }}"
       loop_control:
         label: "{{ item.path | basename }}"

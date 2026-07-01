@@ -7,10 +7,6 @@
   import_playbook: lxc-common.yml
   tags: ["update"]
 
-- name: Import Beszel update configuration
-  import_playbook: lxc-beszel.yml
-  tags: ["update"]
-
 - name: Import Plex update configuration
   import_playbook: lxc-plex.yml
   tags: ["update"]
@@ -21,10 +17,6 @@
 
 - name: Import Pterodactyl Wing update configuration
   import_playbook: vm-pterodactyl-wing.yml
-  tags: ["update"]
-
-- name: Import Forgejo update configuration
-  import_playbook: lxc-forgejo.yml
   tags: ["update"]
 
 - name: Import Tailscale update configuration

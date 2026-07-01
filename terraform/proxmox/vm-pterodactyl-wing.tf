@@ -15,7 +15,7 @@ resource "proxmox_virtual_environment_vm" "pterodactyl_wing" {
   }
 
   memory {
-    dedicated = 8192
+    dedicated = 12288
   }
 
   agent {
@@ -94,8 +94,6 @@ resource "proxmox_virtual_environment_file" "cloud_init_wings" {
           sudo: ALL=(ALL) NOPASSWD:ALL
           shell: /bin/bash
           passwd: ${onepassword_item.pterodactyl_wing_vm.password}
-          ssh_authorized_keys:
-            - ${var.ssh_public_key}
       packages:
         - qemu-guest-agent
         - docker.io

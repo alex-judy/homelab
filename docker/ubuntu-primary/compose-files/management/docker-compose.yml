@@ -2,41 +2,6 @@
 services:
   ########## Container Management ##########
 
-  ## Portainer - WebUI for Containers
-  portainer:
-    # user: $PUID
-    container_name: portainer
-    image: portainer/portainer-ee:2.43.0
-    restart: always
-    command: -H tcp://socket-proxy:2375
-    networks:
-      - traefik_proxy
-      - socket_proxy
-    ports:
-      - "9112:9000"
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # Connect to docker socket proxy tcp://docker-socket-proxy:2375
-      - $DOCKER_DIR/configs/portainer:/data # Change to local directory if you want to save/transfer config locally
-    environment:
-      - TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.${DOMAIN_NAME}`)"
-      - "traefik.http.routers.portainer-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-noauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
-      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
-      - homepage.group=Management
-      - homepage.name=Portainer
-      - homepage.href=http://portainer.${DOMAIN_NAME}
-      - homepage.description=WebUI for managing containers, images, networks, and volumes.
-
   homepage:
     image: ghcr.io/gethomepage/homepage:v1.13.2
     container_name: homepage
@@ -47,9 +12,9 @@ services:
     ports:
       - 3020:3000
     volumes:
-      - $DOCKER_DIR/configs/homepage:/app/config # Make sure your local config directory exists
+      - $DOCKER_DIR/data/homepage:/app/config # Make sure your local config directory exists
       # - /var/run/docker.sock:/var/run/docker.sock:ro # (optional) For docker integrations
-      - /mnt/media:/mnt/media:ro
+      - $MEDIA_DIR:/mnt/media:ro
     environment:
       - PUID
       - PGID

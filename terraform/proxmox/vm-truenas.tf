@@ -27,7 +27,7 @@ resource "proxmox_virtual_environment_vm" "truenas" {
   }
 
   memory {
-    dedicated = 32000 # 32GB
+    dedicated = 16384
   }
 
   # Boot/OS disk (virtual disk on local-lvm)

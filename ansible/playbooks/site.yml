@@ -22,14 +22,6 @@
   import_playbook: lxc-plex.yml
   tags: ["plex"]
 
-- name: Import Beszel setup configuration
-  import_playbook: lxc-beszel.yml
-  tags: ["beszel"]
-
-- name: Import Forgejo setup configuration
-  import_playbook: lxc-forgejo.yml
-  tags: ["forgejo"]
-
 - name: Configuration complete
   hosts: localhost
   gather_facts: false

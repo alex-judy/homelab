@@ -17,7 +17,7 @@ services:
       - TZ
       - UMASK=002
     volumes:
-      - $DOCKER_DIR/configs/prowlarr:/config
+      - $DOCKER_DIR/data/prowlarr:/config
     labels:
       - "traefik.enable=true"
       ## HTTP Routers

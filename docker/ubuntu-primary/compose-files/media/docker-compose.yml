@@ -14,7 +14,7 @@ services:
       - PGID
       - TZ
     volumes:
-      - $DOCKER_DIR/configs/overseerr:/app/config
+      - $DOCKER_DIR/data/overseerr:/app/config
     ports:
       - 5055:5055
     healthcheck:

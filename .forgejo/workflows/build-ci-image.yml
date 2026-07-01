@@ -14,11 +14,7 @@ on:
 
 jobs:
   build:
-    runs-on: docker
-    container:
-      image: catthehacker/ubuntu:act-latest
-    env:
-      DOCKER_HOST: tcp://127.0.0.1:2375
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout

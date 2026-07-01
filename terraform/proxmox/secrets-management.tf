@@ -99,51 +99,6 @@ resource "onepassword_item" "forgejo_lxc" {
   }
 }
 
-# Password for Beszel LXC
-resource "onepassword_item" "beszel_lxc" {
-  vault    = data.onepassword_vault.homelab.uuid
-  title    = "Terraform Beszel LXC"
-  category = "login"
-
-  username = "root"
-
-  password_recipe {
-    length  = 32
-    symbols = true
-    digits  = true
-  }
-
-  url = "https://10.0.10.10:8006/#v1:0:=qemu/${var.beszel_vmid}"
-
-  section {
-    label = "VM Details"
-
-    field {
-      label = "LXC Name"
-      type  = "STRING"
-      value = "beszel-lxc"
-    }
-
-    field {
-      label = "LXC ID"
-      type  = "STRING"
-      value = tostring(var.beszel_vmid)
-    }
-
-    field {
-      label = "Node"
-      type  = "STRING"
-      value = var.proxmox_node
-    }
-
-    field {
-      label = "IP Address"
-      type  = "STRING"
-      value = "DHCP - check Proxmox"
-    }
-  }
-}
-
 # Password for Pterodactyl Panel LXC
 resource "onepassword_item" "pterodactyl_panel_lxc" {
   vault    = data.onepassword_vault.homelab.uuid
@@ -240,7 +195,7 @@ resource "onepassword_item" "ubuntu_devops_vm" {
   title    = "Terraform Ubuntu DevOps VM"
   category = "login"
 
-  username = "alex"
+  username = "ubuntu"
 
   password_recipe {
     length  = 32

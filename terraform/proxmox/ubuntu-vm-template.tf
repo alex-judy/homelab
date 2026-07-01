@@ -29,7 +29,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_template" {
   disk {
     datastore_id = "local-lvm"
     file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
-    interface    = "virtio0"
+    interface    = "scsi0"
     iothread     = true
     discard      = "on"
     size         = 20
@@ -55,7 +55,7 @@ resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
   datastore_id = "local"
   node_name    = var.proxmox_node
 
-  url = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+  url = "https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
 }
 
 resource "proxmox_virtual_environment_file" "cloud_init_template" {

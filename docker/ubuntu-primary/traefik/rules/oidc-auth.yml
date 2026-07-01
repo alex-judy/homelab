@@ -16,4 +16,10 @@ http:
           forceHTTPS: true
           disableReplayDetection: true
           scopes:
+            - openid
+            - profile
+            - email
             - roles
+          excludeURLs:
+            - "^/api/.*$"
+            - "^/api$"

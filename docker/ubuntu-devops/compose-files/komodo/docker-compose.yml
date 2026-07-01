@@ -1,7 +1,7 @@
 ---
 services:
-  mongo:
-    image: mongo
+  komodo-mongo:
+    image: mongo:8.3.4
     container_name: komodo-mongo
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers
@@ -10,19 +10,19 @@ services:
     # ports:
     #   - 27017:27017
     volumes:
-      - mongo-data:/data/db
-      - mongo-config:/data/configdb
+      - $DOCKER_DIR/data/komodo-mongo:/data/db
+      - $DOCKER_DIR/data/komodo-mongo/config:/data/configdb
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${KOMODO_DATABASE_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DATABASE_PASSWORD}
 
   core:
-    image: ghcr.io/moghtech/komodo-core:${COMPOSE_KOMODO_IMAGE_TAG:-2}
+    image: ghcr.io/moghtech/komodo-core:2.2.0
     container_name: komodo-core
     init: true
     restart: unless-stopped
     depends_on:
-      - mongo
+      - komodo-mongo
     ports:
       - 9120:9120
     environment:
@@ -39,14 +39,14 @@ services:
       KOMODO_OIDC_CLIENT_ID: ${KOMODO_OIDC_CLIENT_ID}
       KOMODO_OIDC_CLIENT_SECRET: ${KOMODO_OIDC_CLIENT_SECRET}
     volumes:
-      - /opt/docker/komodo/repo-cache:/repo-cache
+      - $DOCKER_DIR/data/komodo-core:/repo-cache
       - /var/run/docker.sock:/var/run/docker.sock
 
   ## Deploy Periphery container using this block,
   ## or deploy the Periphery binary with systemd using
   ## https://github.com/moghtech/komodo/tree/main/scripts
   periphery:
-    image: ghcr.io/moghtech/komodo-periphery:latest
+    image: ghcr.io/moghtech/komodo-periphery:2.2.0
     container_name: komodo-periphery
     restart: unless-stopped
     network_mode: host
@@ -55,7 +55,7 @@ services:
       PERIPHERY_PASSKEYS: ${KOMODO_PASSKEY}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/docker/komodo/periphery:/etc/komodo
+      - $DOCKER_DIR/data/komodo-periphery:/etc/komodo
 
 volumes:
   # Mongo

@@ -7,7 +7,7 @@ on:
   workflow_dispatch: {}
 jobs:
   renovate:
-    runs-on: docker
+    runs-on: ubuntu-latest
     container:
       image: renovate/renovate:latest
     steps:

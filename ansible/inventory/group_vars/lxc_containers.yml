@@ -1,10 +1,4 @@
 ---
-# Defaults for LXC containers
-beszel_web_port: 8090
-beszel_hub_port: 45876
-beszel_install_dir: /opt/beszel
-beszel_data_dir: /var/lib/beszel
-
 pterodactyl_panel_port: 8443
 pterodactyl_install_dir: /opt/pterodactyl
 pterodactyl_db_name: pterodactyl

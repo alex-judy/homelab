@@ -14,11 +14,10 @@ resource "proxmox_virtual_environment_vm" "ubuntu_server_primary" {
   acpi = true
 
   agent {
-    enabled = true
+    enabled = false
   }
 
   bios = "seabios"
-
   boot_order = ["scsi0", "net0"]
 
   cpu {
@@ -29,7 +28,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_server_primary" {
   }
 
   memory {
-    dedicated = 12290
+    dedicated = 8192
   }
 
   disk {

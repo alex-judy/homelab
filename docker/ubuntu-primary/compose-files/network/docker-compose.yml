@@ -70,8 +70,8 @@ services:
       - --entrypoints.https.address=:443
       - --entrypoints.tcp.address=:21000/tcp
       - --entrypoints.udp.address=:21000/udp
-      - --entryPoints.http.forwardedHeaders.trustedIPs=127.0.0.1/32,192.168.0.0/16,10.0.0.0/8
-      - --entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,192.168.0.0/16,10.0.0.0/8
+      - --entrypoints.http.forwardedHeaders.trustedIPs=127.0.0.1/32,192.168.0.0/16,10.0.0.0/8
+      - --entrypoints.https.forwardedHeaders.trustedIPs=127.0.0.1/32,192.168.0.0/16,10.0.0.0/8
       - --api=true
       - --log=true
       - --log.filePath=/logs/traefik.log
@@ -115,8 +115,8 @@ services:
     volumes:
       # - $DOCKER_DIR/data/traefik:/etc/traefik
       - $DOCKER_DIR/traefik/rules:/rules # file provider directory
-      - $DOCKER_DIR/traefik/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKER_DIR/traefik/logs:/logs # for fail2ban - make sure to touch file before starting container
+      - $DOCKER_DIR/data/traefik/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - $DOCKER_DIR/data/traefik/logs:/logs # for fail2ban - make sure to touch file before starting container
     environment:
       - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
       - CF_API_KEY=${CLOUDFLARE_API_KEY}

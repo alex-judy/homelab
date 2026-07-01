@@ -1,3 +1,4 @@
+---
 x-defaults: &default-settings
   restart: unless-stopped
   networks:
