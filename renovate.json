@@ -51,10 +51,10 @@
     "packageRules": [
         {
             "matchDatasources": ["docker"],
-            "matchPackageNames": [
-              "/^lscr\\.io\\/linuxserver\\//"
+            "matchPackagePatterns": [
+              "^lscr\\.io\\/linuxserver\\/"
             ],
-            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:-ls(?<revision>\\d+))?$",
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:_v\\d+\\.\\d+\\.\\d+)?(?:-ls(?<revision>\\d+))?$",
             "separateMajorMinor": true,
             "stabilityDays": 3
         },
