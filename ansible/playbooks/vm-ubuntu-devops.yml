@@ -81,6 +81,10 @@
       loop:
         - "{{ docker_dir }}/data/runner"
         - "{{ docker_dir }}/data/komodo-core"
+        - "{{ docker_dir }}/data/komodo-ferretdb"
+        - "{{ docker_dir }}/data/komodo-ferretdb/state"
+        - "{{ docker_dir }}/data/komodo-postgres"
+        - "{{ docker_dir }}/data/komodo-postgres/postgres-data"
         - "{{ docker_dir }}/data/komodo-mongo"
         - "{{ docker_dir }}/data/komodo-mongo/config"
         - "{{ docker_dir }}/data/komodo-periphery"
