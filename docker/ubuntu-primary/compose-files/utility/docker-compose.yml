@@ -33,7 +33,7 @@ services:
   speedtest:
     <<: *default-settings
     container_name: speedtest
-    image: openspeedtest/latest
+    image: openspeedtest/latest:v2.0.6
     ports:
       - '3010:3000'
       - '3011:3001'
