@@ -143,14 +143,13 @@
     - name: Deploy each stack
       ansible.builtin.shell: |
         set -o pipefail
+        DOCKER_DIR="{{ docker_dir }}" DOMAIN_NAME="{{ domain_name }}" \
         doppler run -- docker compose up -d --remove-orphans
       args:
         executable: /bin/bash
         chdir: "{{ item.path }}"
       environment:
         DOPPLER_TOKEN: "{{ doppler_token }}"
-        DOCKER_DIR: "{{ docker_dir }}"
-        DOMAIN_NAME: "{{ domain_name }}"
       loop: "{{ stack_dirs.files }}"
       loop_control:
         label: "{{ item.path | basename }}"

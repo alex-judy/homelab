@@ -62,7 +62,7 @@ services:
     #   - 6881:6881/udp
     volumes:
       - $DOCKER_DIR/data/qbittorrent:/config
-      - $DOWNLOADS_DIR/torrents:/downloads
+      - $DOWNLOADS_DIR/torrents:/downloads/torrents
 
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:5.0.4
