@@ -1,7 +1,7 @@
 ---
 services:
   tracearr:
-    image: ghcr.io/connorgallopo/tracearr:1.4.29
+    image: ghcr.io/connorgallopo/tracearr:1.4.30
     container_name: tracearr
     ports:
       - "3001:3000"
