@@ -1,5 +1,46 @@
 ---
 services:
+  komodo-periphery:
+    image: ghcr.io/moghtech/komodo-periphery:2.2.0
+    container_name: komodo-periphery
+    restart: unless-stopped
+    environment:
+      PERIPHERY_CORE_ADDRESS: https://komodo.louhome.xyz
+      PERIPHERY_ROOT_DIRECTORY: /etc/komodo
+      PERIPHERY_CONNECT_AS: vali
+      PERIPHERY_ONBOARDING_KEY: ${KOMODO_ONBOARDING_KEY}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $DOCKER_DIR/data/komodo-periphery:/etc/komodo
+
+  ## Dozzle - Real-time Docker Log Viewer
+  dozzle:
+    image: amir20/dozzle:v10.6
+    container_name: dozzle
+    restart: always
+    networks:
+      - traefik_proxy
+      - socket_proxy
+    ports:
+      - 3661:8080
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_FILTER: "status=running"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dozzle-rtr.entrypoints=https"
+      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.${DOMAIN_NAME}`)"
+      ## Middlewares
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
+      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
+
   tracearr:
     image: ghcr.io/connorgallopo/tracearr:1.4.30
     container_name: tracearr

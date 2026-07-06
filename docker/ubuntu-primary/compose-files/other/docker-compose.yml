@@ -79,67 +79,6 @@ services:
       - "traefik.http.routers.syncthing-rtr.service=syncthing-svc"
       - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
 
-  filebrowser:
-    container_name: filebrowser
-    image: gtstef/filebrowser:1.4-stable
-    restart: unless-stopped
-    networks:
-      - traefik_proxy
-      - socket_proxy
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /mnt:/mnt/truenas
-      - $DOCKER_DIR/data/filebrowser:/home/filebrowser/data
-    environment:
-      - PUID
-      - PGID
-      - TZ
-      - FILEBROWSER_CONFIG=/home/filebrowser/data/config.yaml
-      - FILEBROWSER_ADMIN_PASSWORD=${FILEBROWSER_ADMIN_PASSWORD}
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
-      - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.${DOMAIN_NAME}`)"
-      ## Middlewares
-      - "traefik.http.routers.filebrowser-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
-      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  stirling-pdf:
-    container_name: stirling
-    image: stirlingtools/stirling-pdf:2.14.0
-    restart: always
-    networks:
-      - traefik_proxy
-      - socket_proxy
-    ports:
-      - "8891:8080"
-    volumes:
-      - $DOCKER_DIR/data/stirling/tessdata:/usr/share/tesseract-ocr/5/tessdata  #Required for extra OCR languages
-      - $DOCKER_DIR/data/stirling:/configs
-    #      - /location/of/customFiles:/customFiles/
-    #      - /location/of/logs:/logs/
-    environment:
-      - DOCKER_ENABLE_SECURITY=true
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.stirling-rtr.entrypoints=https"
-      - "traefik.http.routers.stirling-rtr.rule=Host(`pdf.${DOMAIN_NAME}`)"
-      ## Middlewares
-      - "traefik.http.routers.stirling-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.stirling-rtr.service=stirling-svc"
-      - "traefik.http.services.stirling-svc.loadbalancer.server.port=8080"
-
   paperless-redis:
     container_name: paperless-redis
     image: redis:8.8.0-alpine
@@ -156,13 +95,14 @@ services:
       - traefik_proxy
       - socket_proxy
     environment:
-      - PUID
-      - PGID
+      - USERMAP_UID=${PUID}
+      - USERMAP_GID=${PGID}
       - TZ
       - PAPERLESS_URL=https://paperless.${DOMAIN_NAME}
       - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
       - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASS}
       - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_CONSUMER_POLLING=60
       # - PAPERLESS_DBHOST=postgres
     volumes:
       - $DOCKER_DIR/data/paperless:/usr/src/paperless/data

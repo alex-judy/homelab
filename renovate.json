@@ -12,6 +12,9 @@
         "dockerfile",
         "custom.regex"
     ],
+    "registryAliases": {
+        "lscr.io": "ghcr.io"
+    },
     "customManagers": [
         {
             "customType": "regex",
@@ -49,15 +52,6 @@
         }
     ],
     "packageRules": [
-        {
-            "matchDatasources": ["docker"],
-            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:_v\\d+\\.\\d+\\.\\d+)?(?:-ls(?<revision>\\d+))?$",
-            "separateMajorMinor": true,
-            "minimumReleaseAge": "3 days",
-            "matchPackageNames": [
-                "/^lscr\\.io\\/linuxserver\\//"
-            ]
-        },
         {
             "matchDatasources": [
                 "docker"

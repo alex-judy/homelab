@@ -45,7 +45,7 @@ services:
       # - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:5.2.2
+    image: linuxserver/qbittorrent:5.2.2
     restart: unless-stopped
     container_name: qbittorrent
     network_mode: service:gluetun
@@ -65,7 +65,7 @@ services:
       - $DOWNLOADS_DIR/torrents:/downloads/torrents
 
   sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:5.0.4
+    image: linuxserver/sabnzbd:5.0.4
     restart: unless-stopped
     container_name: sabnzbd
     # network_mode: service:gluetun

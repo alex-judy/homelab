@@ -99,14 +99,10 @@
         - "{{ docker_dir }}/data/traefik/logs"
         - "{{ docker_dir }}/data/traefik/acme"
         - "{{ docker_dir }}/data/vscode"
-        - "{{ docker_dir }}/data/filebrowser"
-        - "{{ docker_dir }}/data/stirling"
-        - "{{ docker_dir }}/data/stirling/tessdata"
         - "{{ docker_dir }}/data/paperless"
         - "{{ docker_dir }}/data/paperless/media"
         - "{{ docker_dir }}/data/paperless/consume"
         - "{{ docker_dir }}/data/paperless/export"
-        - "{{ docker_dir }}/data/paperless-redis"
         - "{{ docker_dir }}/data/mealie"
         - "{{ docker_dir }}/data/profilarr"
         - "{{ docker_dir }}/data/sonarr"
@@ -116,6 +112,16 @@
         - "{{ docker_dir }}/data/bazarr"
         - "{{ docker_dir }}/data/bazarr4k"
         - "{{ docker_dir }}/data/dispatcharr"
+
+    - name: Ensure app data directories exist for elevated
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ puid }}"
+        group: "{{ pgid }}"
+        mode: "0777"
+      loop:
+        - "{{ docker_dir }}/data/paperless-redis"
 
     - name: Ensure Traefik acme.json exists with strict permissions
       ansible.builtin.file:
