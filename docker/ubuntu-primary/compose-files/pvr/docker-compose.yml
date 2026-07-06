@@ -201,7 +201,7 @@ services:
       - "traefik.http.routers.sonarr4k-bypass.service=sonarr4k-svc"
 
   bazarr:
-    image: linuxserver/bazarr:1.5.6
+    image: linuxserver/bazarr:1.6.0
     container_name: bazarr
     networks:
       traefik_proxy:
@@ -234,7 +234,7 @@ services:
       - "traefik.http.routers.bazarr-bypass.service=bazarr-svc"
 
   bazarr4k:
-    image: linuxserver/bazarr:1.5.6
+    image: linuxserver/bazarr:1.6.0
     container_name: bazarr4k
     networks:
       traefik_proxy:
