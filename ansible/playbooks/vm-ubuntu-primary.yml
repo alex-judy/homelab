@@ -93,7 +93,6 @@
         - "{{ docker_dir }}/data/overseerr"
         - "{{ docker_dir }}/data/tracearr"
         - "{{ docker_dir }}/data/tracearr-db"
-        - "{{ docker_dir }}/data/tracearr-redis"
         - "{{ docker_dir }}/data/traefik"
         - "{{ docker_dir }}/data/traefik/rules"
         - "{{ docker_dir }}/data/traefik/logs"
@@ -113,7 +112,7 @@
         - "{{ docker_dir }}/data/bazarr4k"
         - "{{ docker_dir }}/data/dispatcharr"
 
-    - name: Ensure app data directories exist for elevated
+    - name: Ensure app data directories exist for elevated permissions
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
@@ -122,6 +121,7 @@
         mode: "0777"
       loop:
         - "{{ docker_dir }}/data/paperless-redis"
+        - "{{ docker_dir }}/data/tracearr-redis"
 
     - name: Ensure Traefik acme.json exists with strict permissions
       ansible.builtin.file:
