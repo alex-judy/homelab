@@ -44,7 +44,7 @@ services:
 
   ## Cloudflare Tunnel - Secure, fast, reliable, and free tunnel to your localhost
   cf-tunnel:
-    image: cloudflare/cloudflared:2026.6.1
+    image: cloudflare/cloudflared:2026.7.0
     container_name: cf-tunnel
     restart: "unless-stopped"
     environment:
@@ -56,7 +56,7 @@ services:
   ## Traefik - Reverse Proxy
   traefik:
     container_name: traefik
-    image: traefik:v3.7.6
+    image: traefik:v3.7.7
     # profiles:
     #   - traefik-network
     restart: always

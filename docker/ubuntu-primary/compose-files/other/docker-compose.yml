@@ -47,7 +47,7 @@ services:
 
   syncthing:
     container_name: syncthing
-    image: linuxserver/syncthing:2.1.1
+    image: linuxserver/syncthing:2.1.2
     restart: always
     networks:
       - traefik_proxy
