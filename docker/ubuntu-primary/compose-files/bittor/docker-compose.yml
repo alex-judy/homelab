@@ -43,14 +43,6 @@ services:
       # - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
       # - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
 
-    healthcheck:
-      test:
-      - CMD-SHELL
-      - pgrep -f gluetun >/dev/null || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
   qbittorrent:
     image: linuxserver/qbittorrent:5.2.3
     restart: unless-stopped
@@ -70,7 +62,6 @@ services:
     volumes:
     - $DOCKER_DIR/data/qbittorrent:/config
     - $DOWNLOADS_DIR/torrents:/downloads/torrents
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -79,6 +70,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   sabnzbd:
     image: linuxserver/sabnzbd:5.0.4
     restart: unless-stopped
@@ -107,7 +99,6 @@ services:
       ## HTTP Services
     - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
     - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -116,6 +107,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
 networks:
   traefik_proxy:
     external: true

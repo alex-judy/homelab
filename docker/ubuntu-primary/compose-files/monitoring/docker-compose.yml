@@ -8,19 +8,17 @@ services:
       PERIPHERY_ROOT_DIRECTORY: /etc/komodo
       PERIPHERY_CONNECT_AS: vali
       PERIPHERY_ONBOARDING_KEY: ${KOMODO_ONBOARDING_KEY}
+      PERIPHERY_CORE_PUBLIC_KEYS: ${KOMODO_CORE_PUBLIC_KEYS}
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     - $DOCKER_DIR/data/komodo-periphery:/etc/komodo
-
-  ## Dozzle - Real-time Docker Log Viewer
     healthcheck:
-      test:
-      - CMD-SHELL
-      - pgrep -f komodo-periphery >/dev/null || exit 1
+      test: ["CMD-SHELL", "grep -q periphery /proc/1/comm"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
+
   dozzle:
     image: amir20/dozzle:v10.6
     container_name: dozzle
@@ -47,15 +45,13 @@ services:
       ## HTTP Services
     - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
     - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
-
     healthcheck:
-      test:
-      - CMD-SHELL
-      - curl -f http://127.0.0.1:8080/ || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 3s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
   tracearr:
     image: ghcr.io/connorgallopo/tracearr:1.4.30
     container_name: tracearr
@@ -91,15 +87,13 @@ services:
       ## HTTP Services
     - "traefik.http.routers.tracearr-rtr.service=tracearr-svc"
     - "traefik.http.services.tracearr-svc.loadbalancer.server.port=3000"
-
     healthcheck:
-      test:
-      - CMD-SHELL
-      - curl -f http://127.0.0.1:3000/ || exit 1
+      test: ["CMD-SHELL", "ps -ef | grep -v grep | grep -q '[n]ode' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
+
   tracearr-db:
     # TimescaleDB HA with PostgreSQL 18 and Toolkit
     # PostgreSQL 18 features: AIO for 3x I/O performance, UUIDv7, temporal constraints

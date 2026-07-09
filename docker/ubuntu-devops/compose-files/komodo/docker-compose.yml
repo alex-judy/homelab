@@ -29,14 +29,6 @@ services:
       POSTGRES_USER: ${KOMODO_DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${KOMODO_DATABASE_PASSWORD}
 
-    healthcheck:
-      test:
-      - CMD-SHELL
-      - pg_isready -U "$POSTGRES_USER" || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
   komodo-ferretdb:
     image: ghcr.io/ferretdb/ferretdb:2.7.0
     container_name: komodo-ferretdb
@@ -53,14 +45,6 @@ services:
       FERRETDB_POSTGRESQL_URL:
         postgres://${KOMODO_DATABASE_USERNAME}:${KOMODO_DATABASE_PASSWORD}@komodo-postgres:5432/postgres?sslmode=disable
 
-    healthcheck:
-      test:
-      - CMD-SHELL
-      - pgrep -f ferretdb >/dev/null || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
   komodo-core:
     image: ghcr.io/moghtech/komodo-core:2.2.0
     container_name: komodo-core
@@ -84,8 +68,8 @@ services:
       KOMODO_OIDC_CLIENT_SECRET: ${KOMODO_OIDC_CLIENT_SECRET}
     volumes:
     - $DOCKER_DIR/data/komodo-core:/repo-cache
+    - $DOCKER_DIR/data/komodo-core/keys:/config/keys
     - /var/run/docker.sock:/var/run/docker.sock
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -94,6 +78,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   komodo-periphery:
     image: ghcr.io/moghtech/komodo-periphery:2.2.0
     container_name: komodo-periphery
@@ -105,18 +90,17 @@ services:
       PERIPHERY_ROOT_DIRECTORY: /etc/komodo
       PERIPHERY_CONNECT_AS: ubuntu-devops
       PERIPHERY_ONBOARDING_KEY: ${KOMODO_ONBOARDING_KEY}
+      PERIPHERY_CORE_PUBLIC_KEYS: ${KOMODO_CORE_PUBLIC_KEYS}
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     - $DOCKER_DIR/data/komodo-periphery:/etc/komodo
-
     healthcheck:
-      test:
-      - CMD-SHELL
-      - pgrep -f komodo-periphery >/dev/null || exit 1
+      test: ["CMD-SHELL", "grep -q periphery /proc/1/comm"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
+
 volumes:
   # Mongo
   mongo-data:

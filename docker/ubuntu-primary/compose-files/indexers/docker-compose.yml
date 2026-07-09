@@ -28,15 +28,13 @@ services:
       ## HTTP Services
     - "traefik.http.routers.prowlarr-rtr.service=prowlarr-svc"
     - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"
-
     healthcheck:
-      test:
-      - CMD-SHELL
-      - curl -f http://127.0.0.1:9696/ || exit 1
-      interval: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:9696/ping"]
+      interval: 1m00s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 40s
+
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.0
     container_name: flaresolverr
@@ -50,15 +48,13 @@ services:
     ports:
     - "8191:8191"
     restart: unless-stopped
-
     healthcheck:
-      test:
-      - CMD-SHELL
-      - curl -f http://127.0.0.1:8191/ || exit 1
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8191"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
+
 networks:
   traefik_proxy:
     external: true

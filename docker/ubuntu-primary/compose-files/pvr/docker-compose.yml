@@ -37,8 +37,6 @@ services:
     - "traefik.http.routers.profilarr-bypass.entrypoints=https"
     - "traefik.http.routers.profilarr-bypass.priority=20"
     - "traefik.http.routers.profilarr-bypass.service=profilarr-svc"
-
-  ## Radarr – Movie Download and Management
     healthcheck:
       test:
       - CMD-SHELL
@@ -47,6 +45,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   radarr:
     container_name: radarr
     image: linuxserver/radarr:6.2.1
@@ -87,8 +86,6 @@ services:
       `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`))"
     - "traefik.http.routers.radarr-bypass.priority=20"
     - "traefik.http.routers.radarr-bypass.service=radarr-svc"
-
-  ## Radarr4K – Movie Download and Management
     healthcheck:
       test:
       - CMD-SHELL
@@ -97,6 +94,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   radarr4k:
     container_name: radarr4k
     image: linuxserver/radarr:6.2.1
@@ -136,8 +134,6 @@ services:
       (Header(`X-Api-Key`, `$RADARR4K_API_KEY`) || Query(`apikey`, `$RADARR4K_API_KEY`))"
     - "traefik.http.routers.radarr4k-bypass.priority=20"
     - "traefik.http.routers.radarr4k-bypass.service=radarr4k-svc"
-
-  ## Sonarr – TV Show Download and Management
     healthcheck:
       test:
       - CMD-SHELL
@@ -146,6 +142,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   sonarr:
     container_name: sonarr
     image: linuxserver/sonarr:4.0.19
@@ -185,8 +182,6 @@ services:
       `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
     - "traefik.http.routers.sonarr-bypass.priority=20"
     - "traefik.http.routers.sonarr-bypass.service=sonarr-svc"
-
-  ## Sonarr4K – TV Show Download and Management
     healthcheck:
       test:
       - CMD-SHELL
@@ -195,6 +190,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   sonarr4k:
     container_name: sonarr4k
     image: linuxserver/sonarr:4.0.19
@@ -234,7 +230,6 @@ services:
       (Header(`X-Api-Key`, `$SONARR4K_API_KEY`) || Query(`apikey`, `$SONARR4K_API_KEY`))"
     - "traefik.http.routers.sonarr4k-bypass.priority=20"
     - "traefik.http.routers.sonarr4k-bypass.service=sonarr4k-svc"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -243,6 +238,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   bazarr:
     image: linuxserver/bazarr:1.6.0
     container_name: bazarr
@@ -275,7 +271,6 @@ services:
     - "traefik.http.routers.bazarr-bypass.entrypoints=https"
     - "traefik.http.routers.bazarr-bypass.priority=20"
     - "traefik.http.routers.bazarr-bypass.service=bazarr-svc"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -284,6 +279,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   bazarr4k:
     image: linuxserver/bazarr:1.6.0
     container_name: bazarr4k
@@ -316,7 +312,6 @@ services:
     - "traefik.http.routers.bazarr4k-bypass.entrypoints=https"
     - "traefik.http.routers.bazarr4k-bypass.priority=20"
     - "traefik.http.routers.bazarr4k-bypass.service=bazarr4k-svc"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -325,6 +320,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   dispatcharr:
     image: ghcr.io/dispatcharr/dispatcharr:0.27.2
     container_name: dispatcharr
@@ -356,7 +352,6 @@ services:
       # - "traefik.http.routers.dispatcharr-bypass.rule=Host(`dispatcharr.${DOMAIN_NAME}`) && (Header(`X-Api-Key`, `$dispatcharr_API_KEY`) || Query(`apikey`, `$dispatcharr_API_KEY`))"
     - "traefik.http.routers.dispatcharr-bypass.priority=20"
     - "traefik.http.routers.dispatcharr-bypass.service=dispatcharr-svc"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -365,6 +360,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
 networks:
   traefik_proxy:
     external: true

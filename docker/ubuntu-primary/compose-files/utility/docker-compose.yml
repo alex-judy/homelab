@@ -6,29 +6,6 @@ x-defaults: &default-settings
   - no-new-privileges:true
 
 services:
-
-  ########## Docker Utilities ##########
-
-  ## Who Am I?? - Show Headers
-  # whoami:
-  #   <<: *default-settings
-  #   container_name: whoami
-  #   image: traefik/whoami:v1.11.0
-  #   environment:
-  #     - WHOAMI_NAME
-  #   labels:
-  #     - "traefik.enable=true"
-  #     # HTTP Routers
-  #     - "traefik.http.routers.whoami-rtr.entrypoints=https"
-  #     - "traefik.http.routers.whoami-rtr.rule=Host(`whoami.${DOMAIN_NAME}`)"
-  #     ## Middlewares
-  #     # - "traefik.http.routers.whoami-rtr.middlewares=cloudflare-real-ip@file, crowdsec@file"
-  #     - "traefik.http.routers.whoami-rtr.middlewares=oidc-auth@file"
-  #     ## HTTP Services
-  #     - "traefik.http.routers.whoami-rtr.service=whoami-svc"
-  #     - "traefik.http.services.whoami-svc.loadbalancer.server.port=80"
-
-  ## OpenSpeedtest
   speedtest:
     <<: *default-settings
     container_name: speedtest
@@ -46,7 +23,6 @@ services:
       ## HTTP Services
     - "traefik.http.routers.speedtest-rtr.service=speedtest-svc"
     - "traefik.http.services.speedtest-svc.loadbalancer.server.port=3000"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -55,6 +31,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
 networks:
   traefik_proxy:
     external: true

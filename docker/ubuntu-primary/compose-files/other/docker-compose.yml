@@ -9,10 +9,6 @@ services:
     restart: always
     networks:
     - traefik_proxy
-    #    ports:
-    #      - "8080:8080"
-    #    security_opt:
-    #      - no-new-privileges:true
     volumes:
     - $DOCKER_DIR/data/vscode:/config
     - $HOME:$HOME
@@ -20,10 +16,7 @@ services:
     - PUID
     - PGID
     - TZ
-      # - PASSWORD=GjhnTkLerv49Qp #optional
-      # - HASHED_PASSWORD= #optional
     - SUDO_PASSWORD=${VSCODE_PASSWORD}   #optional
-      # - SUDO_PASSWORD_HASH= #optional
     - PROXY_DOMAIN=vscode.${DOMAIN_NAME}
     - DEFAULT_WORKSPACE=$HOME
     labels:
@@ -36,14 +29,6 @@ services:
       ## HTTP Services
     - "traefik.http.routers.vscode-rtr.service=vscode-svc"
     - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
-
-  ## Syncthing – Continuous File Synchronization
-  ## Fix inotify limit error - Need to run on host
-  #https://docs.syncthing.net/users/faq.html#inotify-limits
-  # echo "fs.inotify.max_user_watches=204800" | sudo tee -a /etc/sysctl.d/90-override.conf
-  # This only takes effect after a reboot. To adjust the limit immediately, run:
-  # sudo sh -c 'echo 204800 > /proc/sys/fs/inotify/max_user_watches'
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -52,6 +37,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   syncthing:
     container_name: syncthing
     image: linuxserver/syncthing:2.1.2
@@ -85,7 +71,6 @@ services:
       ## HTTP Services
     - "traefik.http.routers.syncthing-rtr.service=syncthing-svc"
     - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -94,6 +79,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   paperless-redis:
     container_name: paperless-redis
     image: redis:8.8.0-alpine
@@ -102,7 +88,6 @@ services:
     - socket_proxy
     volumes:
     - $DOCKER_DIR/data/paperless-redis:/data
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -111,6 +96,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   paperless:
     image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
     container_name: paperless
@@ -126,7 +112,6 @@ services:
     - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASS}
     - PAPERLESS_REDIS=redis://paperless-redis:6379
     - PAPERLESS_CONSUMER_POLLING=60
-      # - PAPERLESS_DBHOST=postgres
     volumes:
     - $DOCKER_DIR/data/paperless:/usr/src/paperless/data
     - $DOCKER_DIR/data/paperless/media:/usr/src/paperless/media
@@ -145,7 +130,6 @@ services:
       ## HTTP Services
     - "traefik.http.routers.paperless-rtr.service=paperless-svc"
     - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -154,6 +138,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   mealie:
     image: ghcr.io/mealie-recipes/mealie:v3.20.1
     container_name: mealie
@@ -195,7 +180,6 @@ services:
       ## HTTP Services
     - "traefik.http.routers.mealie-rtr.service=mealie-svc"
     - "traefik.http.services.mealie-svc.loadbalancer.server.port=9000"
-
     healthcheck:
       test:
       - CMD-SHELL
@@ -204,6 +188,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
 networks:
   traefik_proxy:
     external: true

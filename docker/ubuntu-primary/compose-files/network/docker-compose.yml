@@ -40,16 +40,13 @@ services:
     - SYSTEM=0
     - TASKS=1   #
     - VOLUMES=1
-
-  ## Cloudflare Tunnel - Secure, fast, reliable, and free tunnel to your localhost
     healthcheck:
-      test:
-      - CMD-SHELL
-      - curl -f http://127.0.0.1:2375/_ping || exit 1
-      interval: 30s
-      timeout: 10s
+      test: wget --spider --tries=1 http://localhost:2375/_ping || exit 1
+      interval: "29s"
+      timeout: "5s"
       retries: 3
-      start_period: 10s
+      start_period: "21s"
+
   cf-tunnel:
     image: cloudflare/cloudflared:2026.7.0
     container_name: cf-tunnel
@@ -59,16 +56,13 @@ services:
     networks:
       cloudflared:
     command: tunnel --no-autoupdate run
-
-  ## Traefik - Reverse Proxy
     healthcheck:
-      test:
-      - CMD-SHELL
-      - pgrep -f cloudflared >/dev/null || exit 1
-      interval: 30s
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "0.0.0.0:20241", "ready"]
+      interval: 20s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
+
   traefik:
     container_name: traefik
     image: traefik:v3.7.7
