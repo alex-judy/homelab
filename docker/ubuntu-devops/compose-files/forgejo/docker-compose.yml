@@ -1,28 +1,21 @@
+---
 services:
   server:
     image: codeberg.org/forgejo/forgejo:15
     container_name: forgejo
-    environment:
-    - USER_UID=${PUID}
-    - USER_GID=${PGID}
+    environment: ['USER_UID=${PUID}', 'USER_GID=${PGID}']
     restart: always
-    networks:
-    - forgejo
+    networks: [forgejo]
     volumes:
-    - $DOCKER_DIR/data/forgejo:/data
-    - /etc/localtime:/etc/localtime:ro
-    ports:
-    - 3000:3000
-    - 222:22
+      - $DOCKER_DIR/data/forgejo:/data
+      - /etc/localtime:/etc/localtime:ro
+    ports: [3000:3000, 222:22]
     healthcheck:
-      test:
-      - CMD-SHELL
-      - curl -f http://127.0.0.1:3000/ || exit 1
+      test: [CMD-SHELL, curl -f http://127.0.0.1:3000/ || exit 1]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
 networks:
   forgejo:
     external: false

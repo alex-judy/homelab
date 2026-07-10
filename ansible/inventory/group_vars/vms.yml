@@ -1,9 +1,4 @@
 ---
-docker_compose_branch: "main"
-docker_compose_path: "/srv/docker"
-docker_users:
-  - ubuntu
-
 # TRUENAS share mounts (optional)
 # define a list of maps with src and mount_point.  example:
 # truenas_shares:
@@ -12,15 +7,7 @@ docker_users:
 #   - src: "192.168.1.100:/mnt/pool/data"
 #     mount_point: "/mnt/data"
 truenas_shares:
-  - src: "{{ truenas_nfs_server }}:{{ truenas_media_share }}"
+  - src: '{{ truenas_nfs_server }}:{{ truenas_media_share }}'
     mount_point: /mnt/media
-  - src: "{{ truenas_nfs_server }}:{{ truenas_downloads_share }}"
+  - src: '{{ truenas_nfs_server }}:{{ truenas_downloads_share }}'
     mount_point: /mnt/downloads
-
-# Doppler secrets config for VMs
-# Set doppler_enabled: true to install Doppler and use Doppler-managed secrets in compose stacks
-# Provide doppler_token via this var (Ansible Vault) or by exporting DOPPLER_TOKEN in your environment
-doppler_enabled: true
-doppler_token: ""
-doppler_project: ""
-doppler_config: "default"

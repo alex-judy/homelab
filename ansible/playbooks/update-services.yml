@@ -2,27 +2,21 @@
 # Main orchestrator to update all homelab services.
 # Runs only the tasks tagged "update".
 # Execute with: ansible-playbook playbooks/update-services.yml
-
 - name: Import common update configuration
   import_playbook: lxc-common.yml
-  tags: ["update"]
-
+  tags: [update]
 - name: Import Plex update configuration
   import_playbook: lxc-plex.yml
-  tags: ["update"]
-
+  tags: [update]
 - name: Import Pterodactyl Panel update configuration
   import_playbook: lxc-pterodactyl-panel.yml
-  tags: ["update"]
-
+  tags: [update]
 - name: Import Pterodactyl Wing update configuration
   import_playbook: vm-pterodactyl-wing.yml
-  tags: ["update"]
-
+  tags: [update]
 - name: Import Tailscale update configuration
   import_playbook: lxc-tailscale.yml
-  tags: ["update"]
-
+  tags: [update]
 - name: Import Primary Ubuntu VM update configuration
   import_playbook: vm-ubuntu-primary.yml
-  tags: ["update"]
+  tags: [update]

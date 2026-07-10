@@ -2,61 +2,52 @@
 - name: Install and Configure Pterodactyl Panel
   hosts: pterodactyl
   become: true
-
   tasks:
     - name: Add Ondrej PHP PPA (Ubuntu)
       ansible.builtin.apt_repository:
         repo: ppa:ondrej/php
         state: present
-
     - name: Download Pterodactyl archive
       ansible.builtin.get_url:
         url: https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
         dest: /tmp/panel.tar.gz
-        mode: "0644"
+        mode: '0644'
       notify: Extract Pterodactyl Panel if changed
-
     - name: Configure PHP pool
       ansible.builtin.template:
         src: pterodactyl-pool.conf.j2
         dest: /etc/php/8.3/fpm/pool.d/www.conf
-        mode: "0644"
+        mode: '0644'
       notify: Restart PHP-FPM if config changed
-
     - name: Create MariaDB database and user for Pterodactyl
       community.mysql.mysql_db:
         name: pterodactyl
         state: present
       register: db_create
       changed_when: db_create.changed
-
     - name: Install Composer dependencies
       ansible.builtin.command: composer install --no-dev --optimize-autoloader
       args:
         chdir: /var/www/pterodactyl
       register: comp_res
       changed_when: "'Installing' in comp_res.stdout or 'Updating' in comp_res.stdout"
-
     - name: Generate application key (first install only)
       ansible.builtin.command: php artisan key:generate --force
       args:
         chdir: /var/www/pterodactyl
         creates: /var/www/pterodactyl/.env
-
     - name: Run database migrations
       ansible.builtin.command: php artisan migrate --force
       args:
         chdir: /var/www/pterodactyl
       register: migration_out
       changed_when: "'Nothing to migrate' not in migration_out.stdout"
-
   handlers:
     - name: Extract Pterodactyl Panel if changed
       ansible.builtin.unarchive:
         src: /tmp/panel.tar.gz
         dest: /var/www/pterodactyl
         remote_src: true
-
     - name: Restart PHP-FPM if config changed
       ansible.builtin.systemd:
         name: php8.3-fpm

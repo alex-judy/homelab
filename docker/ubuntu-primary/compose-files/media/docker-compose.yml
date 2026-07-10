@@ -1,40 +1,35 @@
 ---
 services:
-  ########## Media and Media Requests ##########
+  ########## Media and Media Requests  ##########
   ## Overseerr
   overseerr:
     # user: $PUID
     image: ghcr.io/seerr-team/seerr:v3.3.0
     init: true
     container_name: seerr
-    networks:
-      - traefik_proxy
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    volumes:
-      - $DOCKER_DIR/data/overseerr:/app/config
-    ports:
-      - 5055:5055
+    networks: [traefik_proxy]
+    environment: [PUID, PGID, TZ]
+    volumes: [$DOCKER_DIR/data/overseerr:/app/config]
+    ports: [5055:5055]
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status
+        || exit 1
       start_period: 20s
       timeout: 3s
       interval: 15s
       retries: 3
     restart: unless-stopped
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
       ## HTTP Routers
-      - "traefik.http.routers.overseerr-rtr.entrypoints=https"
-      - "traefik.http.routers.overseerr-rtr.rule=Host(`overseerr.${DOMAIN_NAME}`) || Host(`seerr.${DOMAIN_NAME}`)"
+      - traefik.http.routers.overseerr-rtr.entrypoints=https
+      - traefik.http.routers.overseerr-rtr.rule=Host(`overseerr.${DOMAIN_NAME}`) ||
+        Host(`seerr.${DOMAIN_NAME}`)
       ## Middlewares
-      - "traefik.http.routers.overseerr-rtr.middlewares=chain-noauth@file"
+      - traefik.http.routers.overseerr-rtr.middlewares=chain-noauth@file
       ## HTTP Services
-      - "traefik.http.routers.overseerr-rtr.service=overseerr-svc"
-      - "traefik.http.services.overseerr-svc.loadbalancer.server.port=5055"
-
+      - traefik.http.routers.overseerr-rtr.service=overseerr-svc
+      - traefik.http.services.overseerr-svc.loadbalancer.server.port=5055
 networks:
   traefik_proxy:
     external: true

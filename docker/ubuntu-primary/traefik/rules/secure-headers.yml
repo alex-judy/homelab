@@ -3,13 +3,9 @@ http:
   middlewares:
     secure-headers:
       headers:
-        accessControlAllowMethods:
-          - GET
-          - OPTIONS
-          - PUT
+        accessControlAllowMethods: [GET, OPTIONS, PUT]
         accessControlMaxAge: 100
-        hostsProxyHeaders:
-          - X-Forwarded-Host
+        hostsProxyHeaders: [X-Forwarded-Host]
         stsSeconds: 63072000
         stsIncludeSubdomains: true
         stsPreload: true
@@ -18,6 +14,7 @@ http:
         contentTypeNosniff: true
         browserXssFilter: true
         referrerPolicy: same-origin
-        permissionsPolicy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()
+        permissionsPolicy: camera=(), microphone=(), geolocation=(), payment=(), usb=(),
+          vr=()
         customResponseHeaders:
           X-Robots-Tag: none,noarchive,nosnippet,notranslate,noimageindex,

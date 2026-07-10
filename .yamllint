@@ -9,6 +9,7 @@ ignore:
   - /.vscode/
   - .yamllint
   - .cache_ggshield
+  - /traefik/rules/*
 
 rules:
   line-length:

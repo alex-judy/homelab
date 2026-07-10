@@ -2,12 +2,10 @@
 http:
   routers:
     komodo-rtr:
-      entryPoints:
-        - https
+      entryPoints: [https]
       rule: Host(`komodo.{{ env "DOMAIN_NAME" }}`)
       service: komodo-svc
-      middlewares:
-        - chain-noauth
+      middlewares: [chain-noauth]
   services:
     komodo-svc:
       loadBalancer:

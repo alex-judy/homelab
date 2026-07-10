@@ -1,42 +1,36 @@
+---
 services:
   docker-in-docker:
     image: docker:dind
     container_name: docker_dind
     privileged: true
-    dns:
-    - 10.0.10.1
-    ports:
-    - "2375:2375"
-    command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
+    dns: [10.0.10.1]
+    ports: [2375:2375]
+    command: [dockerd, -H, tcp://0.0.0.0:2375, --tls=false]
     restart: unless-stopped
     volumes:
-    - $DOCKER_DIR/data/docker-dind:/var/lib/docker
-    - $DOCKER_DIR/data/docker-dind/config:/etc/docker
+      - $DOCKER_DIR/data/docker-dind:/var/lib/docker
+      - $DOCKER_DIR/data/docker-dind/config:/etc/docker
     healthcheck:
-      test: ["CMD", "sh", "-c", "DOCKER_HOST=tcp://127.0.0.1:2375 docker info"]
+      test: [CMD, sh, -c, DOCKER_HOST=tcp://127.0.0.1:2375 docker info]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
-
   runner:
     image: data.forgejo.org/forgejo/runner:12
     container_name: runner
     restart: unless-stopped
-    user: "1000:1000"
+    user: 1000:1000
     depends_on:
       docker-in-docker:
         condition: service_started
-    environment:
-    - DOCKER_HOST=tcp://127.0.0.1:2375
-    volumes:
-    - $DOCKER_DIR/data/runner:/data
-    network_mode: "host"
-    command: ["forgejo-runner", "-c", "/data/runner-config.yml", "daemon"]
+    environment: [DOCKER_HOST=tcp://127.0.0.1:2375]
+    volumes: [$DOCKER_DIR/data/runner:/data]
+    network_mode: host
+    command: [forgejo-runner, -c, /data/runner-config.yml, daemon]
     healthcheck:
-      test:
-      - CMD-SHELL
-      - pgrep -f forgejo-runner >/dev/null || exit 1
+      test: [CMD-SHELL, pgrep -f forgejo-runner >/dev/null || exit 1]
       interval: 30s
       timeout: 10s
       retries: 3

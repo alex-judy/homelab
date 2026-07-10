@@ -8,7 +8,7 @@ http:
           logLevel: INFO
           defaultDecisionSeconds: 60
           crowdsecMode: live
-          crowdsecAppsecEnabled: false # <--- here you can enable appsec waf
+          crowdsecAppsecEnabled: false  # <--- here you can enable appsec waf
           crowdsecAppsecHost: crowdsec:7422
           crowdsecAppsecFailureBlock: true
           crowdsecAppsecUnreachableBlock: true
@@ -16,7 +16,7 @@ http:
           crowdsecLapiHost: crowdsec:8080
           crowdsecLapiScheme: http
           crowdsecLapiTLSInsecureVerify: false
-          fallbackOption: "bypass"
+          fallbackOption: bypass
           forwardedHeadersTrustedIPs:
             # private class ranges
             - 10.0.0.0/8

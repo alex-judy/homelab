@@ -1,36 +1,32 @@
+---
 services:
-  ########## Container Management ##########
-
+  ########## Container Management  ##########
   homepage:
     image: ghcr.io/gethomepage/homepage:v1.13.2
     container_name: homepage
-    networks:
-    - traefik_proxy
-    - socket_proxy
+    networks: [traefik_proxy, socket_proxy]
     restart: unless-stopped
-    ports:
-    - 3020:3000
+    ports: [3020:3000]
     volumes:
-    - $DOCKER_DIR/data/homepage:/app/config   # Make sure your local config directory exists
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # (optional) For docker integrations
-    - $MEDIA_DIR:/mnt/media:ro
+      - $DOCKER_DIR/data/homepage:/app/config  # Make sure your local config directory exists
+      # - /var/run/docker.sock:/var/run/docker.sock:ro  # (optional) For docker integrations
+      - $MEDIA_DIR:/mnt/media:ro
     environment:
-    - PUID
-    - PGID
-    - TZ
-    - HOMEPAGE_ALLOWED_HOSTS=homepage.${DOMAIN_NAME}
+      - PUID
+      - PGID
+      - TZ
+      - HOMEPAGE_ALLOWED_HOSTS=homepage.${DOMAIN_NAME}
     labels:
-    - "traefik.enable=true"
+      - traefik.enable=true
       ## HTTP Routers
-    - "traefik.http.routers.homepage-rtr.entrypoints=https"
-    - "traefik.http.routers.homepage-rtr.rule=Host(`homepage.${DOMAIN_NAME}`)"
-    - "traefik.http.routers.homepage-rtr.tls=true"
+      - traefik.http.routers.homepage-rtr.entrypoints=https
+      - traefik.http.routers.homepage-rtr.rule=Host(`homepage.${DOMAIN_NAME}`)
+      - traefik.http.routers.homepage-rtr.tls=true
       ## Middlewares
-    - "traefik.http.routers.homepage-rtr.middlewares=chain-oauth@file"
+      - traefik.http.routers.homepage-rtr.middlewares=chain-oauth@file
       ## HTTP Services
-    - "traefik.http.routers.homepage-rtr.service=homepage-svc"
-    - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
-
+      - traefik.http.routers.homepage-rtr.service=homepage-svc
+      - traefik.http.services.homepage-svc.loadbalancer.server.port=3000
 networks:
   traefik_proxy:
     external: true

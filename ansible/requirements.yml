@@ -2,7 +2,6 @@
 roles:
   - name: artis3n.tailscale
     version: v5.0.1
-
 collections:
   - name: ansible.posix
     version: 2.2.0

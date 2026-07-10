@@ -2,12 +2,10 @@
 http:
   routers:
     hass-rtr:
-      entryPoints:
-        - https
+      entryPoints: [https]
       rule: Host(`hass.{{ env "DOMAIN_NAME" }}`)
       service: hass-svc
-      middlewares:
-        - chain-noauth
+      middlewares: [chain-noauth]
   services:
     hass-svc:
       loadBalancer:

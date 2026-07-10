@@ -2,20 +2,17 @@
 - name: Setup Doppler Environment Keys
   hosts: all
   become: true
-
   tasks:
     - name: Download Doppler installer script
       ansible.builtin.get_url:
         url: https://cli.doppler.com/install.sh
         dest: /tmp/install_doppler.sh
-        mode: "0700"
-
+        mode: '0700'
     - name: Install Doppler CLI
       ansible.builtin.shell: set -o pipefail && /tmp/install_doppler.sh | sh
       args:
         executable: /bin/bash
         creates: /usr/local/bin/doppler
-
     - name: Configure Doppler for docker-compose
       ansible.builtin.command: doppler setup --token {{ doppler_token }}
       register: doppler_conf

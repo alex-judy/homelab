@@ -2,12 +2,10 @@
 http:
   routers:
     pterodactyl-panel-rtr:
-      entryPoints:
-        - https
+      entryPoints: [https]
       rule: Host(`games.{{ env "DOMAIN_NAME" }}`)
       service: pterodactyl-panel-svc
-      middlewares:
-        - chain-oauth
+      middlewares: [chain-oauth]
   services:
     pterodactyl-panel-svc:
       loadBalancer:

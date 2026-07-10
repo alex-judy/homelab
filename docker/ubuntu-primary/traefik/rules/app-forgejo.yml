@@ -3,19 +3,15 @@ http:
   routers:
     forgejo-rtr:
       rule: Host(`forgejo.{{ env "DOMAIN_NAME" }}`)
-      entryPoints:
-        - https
+      entryPoints: [https]
       service: forgejo-svc
-      middlewares:
-        - chain-noauth
+      middlewares: [chain-noauth]
     forgejo-registry-rtr:
       rule: Host(`registry.{{ env "DOMAIN_NAME" }}`)
-      entryPoints:
-        - https
+      entryPoints: [https]
       service: forgejo-svc
-
   services:
     forgejo-svc:
       loadBalancer:
         servers:
-          - url: "http://10.0.10.60:3000"
+          - url: http://10.0.10.60:3000

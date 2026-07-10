@@ -3,11 +3,10 @@
 - name: Configure all LXC containers
   hosts: lxc_containers
   gather_facts: true
-
   tasks:
     - name: Display starting message
       ansible.builtin.debug:
-        msg: "Starting configuration of {{ inventory_hostname }}"
+        msg: Starting configuration of {{ inventory_hostname }}
 
 # Common setup for all containers
 - name: Import common setup configuration
@@ -16,12 +15,10 @@
 # Service-specific playbooks
 - name: Import Tailscale setup configuration
   import_playbook: lxc-tailscale.yml
-  tags: ["tailscale"]
-
+  tags: [tailscale]
 - name: Import Plex setup configuration
   import_playbook: lxc-plex.yml
-  tags: ["plex"]
-
+  tags: [plex]
 - name: Configuration complete
   hosts: localhost
   gather_facts: false
@@ -29,12 +26,13 @@
     - name: Display completion message
       ansible.builtin.debug:
         msg:
-          - "============================================"
-          - "All LXC containers configured successfully!"
-          - "============================================"
-          - ""
-          - "Next steps:"
+          - ============================================
+          - All LXC containers configured successfully!
+          - ============================================
+          - ''
+          - 'Next steps:'
           - "1. Verify Plex GPU access: ssh plex 'ls -l /dev/dri'"
-          - "2. Check VPN connection: ssh downloads 'docker exec gluetun wget -qO- https://ipinfo.io/ip'"
-          - "3. Configure Cloudflare Tunnel routes in Zero Trust dashboard"
-          - "4. Test access to services via your domain"
+          - "2. Check VPN connection: ssh downloads 'docker exec gluetun wget -qO-\
+            \ https://ipinfo.io/ip'"
+          - 3. Configure Cloudflare Tunnel routes in Zero Trust dashboard
+          - 4. Test access to services via your domain

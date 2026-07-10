@@ -4,7 +4,7 @@ http:
     oidc-auth:
       plugin:
         traefikoidc:
-          providerURL: 'https://auth.{{ env "DOMAIN_NAME" }}'
+          providerURL: https://auth.{{ env "DOMAIN_NAME" }}
           clientID: '{{ env "OIDC_CLIENT_ID" }}'
           clientSecret: '{{ env "OIDC_CLIENT_SECRET" }}'
           sessionEncryptionKey: '{{ env "OIDC_SESSION_KEY" }}'
@@ -12,14 +12,8 @@ http:
           logoutURL: /oauth2/logout
           rateLimit: 1000
           enablePKCE: true
-          cookieDomain: '.{{ env "DOMAIN_NAME" }}'
+          cookieDomain: .{{ env "DOMAIN_NAME" }}
           forceHTTPS: true
           disableReplayDetection: true
-          scopes:
-            - openid
-            - profile
-            - email
-            - roles
-          excludeURLs:
-            - "^/api/.*$"
-            - "^/api$"
+          scopes: [openid, profile, email, roles]
+          excludeURLs: [^/api/.*$, ^/api$]
