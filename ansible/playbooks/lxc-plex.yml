@@ -9,13 +9,11 @@
     truenas_nfs_server: localhost
     truenas_shares: []
   tasks:
-    # -------------------------------------------------------------------------
-    # System preparation
-    # -------------------------------------------------------------------------
     - name: Wait for system to be ready
       ansible.builtin.wait_for_connection:
         timeout: 300
       tags: [install, update]
+
     - name: Remove conflicting Plex repository sources
       ansible.builtin.shell: |
         set -o pipefail
@@ -28,36 +26,38 @@
         executable: /bin/bash
       changed_when: false
       tags: [install, update]
+
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
       tags: [install, update]
+
     - name: Upgrade packages
       ansible.builtin.apt:
         upgrade: dist
         autoremove: true
         autoclean: true
       tags: [install, update]
+
     - name: Install dependencies
       ansible.builtin.apt:
         name: [nfs-common, gpg, intel-media-va-driver, vainfo]
         state: present
       tags: [install, update]
 
-    # -------------------------------------------------------------------------
-    # NFS mounts
-    # -------------------------------------------------------------------------
     - name: Query TrueNAS export list
       ansible.builtin.command: showmount -e {{ truenas_nfs_server }}
       register: truenas_exports
       changed_when: false
       failed_when: false
       tags: [install, update, nfs, debug]
+
     - name: Display TrueNAS exports
       ansible.builtin.debug:
         var: truenas_exports.stdout_lines
       tags: [debug, nfs]
+
     - name: Warn if a requested share is not in the export list
       ansible.builtin.debug:
         msg: 'WARNING: {{ item.src }} not found in TrueNAS export list — mount will
@@ -67,6 +67,7 @@
         - truenas_shares | length > 0
         - item.src.split(':')[1] not in (truenas_exports.stdout | default(''))
       tags: [install, update, nfs]
+
     - name: Ensure mount points exist
       ansible.builtin.file:
         path: '{{ item.mount_point }}'
@@ -77,6 +78,7 @@
       loop: '{{ truenas_shares }}'
       when: truenas_shares | length > 0
       tags: [install, update, nfs]
+
     - name: Mount TrueNAS NFS shares
       ansible.posix.mount:
         path: '{{ item.mount_point }}'
@@ -88,6 +90,7 @@
       when: truenas_shares | length > 0
       register: mount_results
       tags: [install, update, nfs]
+
     - name: Warn if a share failed to mount
       ansible.builtin.debug:
         msg: 'WARNING: failed to mount {{ item.item.src }} at {{ item.item.mount_point }}'
@@ -97,15 +100,13 @@
         - item.failed is defined and item.failed
       tags: [install, update, nfs]
 
-    # -------------------------------------------------------------------------
-    # Plex installation
-    # -------------------------------------------------------------------------
     - name: Add Plex repository key
       ansible.builtin.get_url:
         url: https://downloads.plex.tv/plex-keys/PlexSign.key
         dest: /usr/share/keyrings/plexmediaserver.gpg
         mode: '0644'
       tags: [install, update]
+
     - name: Add Plex repository
       ansible.builtin.apt_repository:
         repo: deb [signed-by=/usr/share/keyrings/plexmediaserver.gpg] https://downloads.plex.tv/repo/deb
@@ -113,11 +114,14 @@
         state: present
         filename: plexmediaserver
       tags: [install, update]
-    - name: Install Plex Media Server
+
+    - name: Install or update Plex Media Server
       ansible.builtin.apt:
         name: plexmediaserver
         state: present
+        update_cache: true
       tags: [install, update]
+
     - name: Ensure Plex service is enabled and started
       ansible.builtin.systemd:
         name: plexmediaserver
@@ -132,9 +136,6 @@
         timeout: 60
       tags: [install, update]
 
-    # -------------------------------------------------------------------------
-    # Plex claiming
-    # -------------------------------------------------------------------------
     - name: Check if server is already claimed
       ansible.builtin.uri:
         url: http://localhost:32400/identity
@@ -148,10 +149,9 @@
         {{ plex_claim_token }}
       register: plex_out
       changed_when: "'claimed' in plex_out.stdout"
+      when: plex_claim_token | default('') | length > 0
+      tags: [install, update]
 
-    # -------------------------------------------------------------------------
-    # Summary
-    # -------------------------------------------------------------------------
     - name: Display Plex access information
       ansible.builtin.debug:
         msg:

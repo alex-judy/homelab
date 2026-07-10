@@ -1,0 +1,37 @@
+---
+name: Daily Plex Update
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  update-plex:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.louhome.xyz/lou-home/ci-tools:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.FORGEJO_RUNNER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/homelab-runner
+          chmod 600 ~/.ssh/homelab-runner
+          ssh-keyscan -H 10.0.10.13 >> ~/.ssh/known_hosts
+
+      - name: Install Ansible dependencies
+        run: ansible-galaxy install -r ansible/requirements.yml
+
+      - name: Run Plex update playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+        run: |
+          ansible-playbook ansible/playbooks/lxc-plex.yml \
+            --private-key=$HOME/.ssh/homelab-runner \
+            -i ansible/inventory/hosts.yml \
+            -e plex_claim_token='' \
+            --tags update

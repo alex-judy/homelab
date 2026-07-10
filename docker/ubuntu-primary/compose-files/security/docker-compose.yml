@@ -12,12 +12,11 @@ services:
       # - "$CROWDSEC_PROMETHEUS_EXPORT:6060" # For metrics export to Prometheus database.
       # - "$ZEROTIER_IP_WEBSERVER:$CROWDSEC_PROMETHEUS_EXPORT:6060" # If you don't use ZeroTier remove use just $CROWDSEC_PROMETHEUS_EXPORT:6060
     environment:
-      COLLECTIONS: crowdsecurity/traefik crowdsecurity/http-dos crowdsecurity/http-cve
-        crowdsecurity/base-http-scenarios crowdsecurity/iptables crowdsecurity/whitelist-good-actors
-        crowdsecurity/nginx crowdsecurity/linux crowdsecurity/appsec-generic-rules
-        crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs
-      GID: 1000
-      # CUSTOM_HOSTNAME: louhome
+      - COLLECTIONS= crowdsecurity/traefik crowdsecurity/http-dos crowdsecurity/http-cve
+         crowdsecurity/base-http-scenarios crowdsecurity/iptables crowdsecurity/whitelist-good-actors
+         crowdsecurity/nginx crowdsecurity/linux crowdsecurity/appsec-generic-rules
+         crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs
+      - TZ
     volumes:
       - /var/log/auth.log:/var/log/auth.log:ro
       - /var/log/syslog:/var/log/syslog:ro

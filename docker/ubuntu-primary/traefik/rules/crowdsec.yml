@@ -8,7 +8,7 @@ http:
           logLevel: INFO
           defaultDecisionSeconds: 60
           crowdsecMode: live
-          crowdsecAppsecEnabled: false  # <--- here you can enable appsec waf
+          crowdsecAppsecEnabled: true
           crowdsecAppsecHost: crowdsec:7422
           crowdsecAppsecFailureBlock: true
           crowdsecAppsecUnreachableBlock: true

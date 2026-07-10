@@ -5,7 +5,7 @@ http:
       chain:
         middlewares:
           # Apply authentication first so auth handlers see the original request
-          [oidc-auth, crowdsec]
+          [crowdsec, oidc-auth]
     chain-noauth:
       chain:
         middlewares: [crowdsec]
