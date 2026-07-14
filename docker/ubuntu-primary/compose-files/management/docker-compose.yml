@@ -18,9 +18,14 @@ services:
       - HOMEPAGE_ALLOWED_HOSTS=homepage.${DOMAIN_NAME}
     labels:
       - traefik.enable=true
+      - homepage.group=Management
+      - homepage.name=Homepage
+      - homepage.icon=homepage
+      - homepage.description=Dashboard and service overview
+      - homepage.href=https://homepage.${DOMAIN_NAME}
       ## HTTP Routers
       - traefik.http.routers.homepage-rtr.entrypoints=https
-      - traefik.http.routers.homepage-rtr.rule=Host(`homepage.${DOMAIN_NAME}` || ${DOMAIN_NAME})
+      - traefik.http.routers.homepage-rtr.rule=Host(`homepage.${DOMAIN_NAME}`)
       - traefik.http.routers.homepage-rtr.tls=true
       ## Middlewares
       - traefik.http.routers.homepage-rtr.middlewares=chain-oauth@file

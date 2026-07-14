@@ -67,6 +67,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.radarr-rtr.service=radarr-svc
       - traefik.http.services.radarr-svc.loadbalancer.server.port=7878
+      - homepage.group=Media
+      - homepage.name=Radarr
+      - homepage.icon=radarr
+      - homepage.description=Movie management and downloads
+      - homepage.href=https://radarr.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.radarr-bypass.entrypoints=https
       - traefik.http.routers.radarr-bypass.rule=Host(`radarr.${DOMAIN_NAME}`) && (Header(`X-Api-Key`,
@@ -106,6 +111,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.radarr4k-rtr.service=radarr4k-svc
       - traefik.http.services.radarr4k-svc.loadbalancer.server.port=7878
+      - homepage.group=Media
+      - homepage.name=Radarr 4K
+      - homepage.icon=radarr
+      - homepage.description=4K movie management and downloads
+      - homepage.href=https://radarr4k.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.radarr4k-bypass.entrypoints=https
       - traefik.http.routers.radarr4k-bypass.rule=Host(`radarr4k.${DOMAIN_NAME}`)
@@ -145,6 +155,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.sonarr-rtr.service=sonarr-svc
       - traefik.http.services.sonarr-svc.loadbalancer.server.port=8989
+      - homepage.group=Media
+      - homepage.name=Sonarr
+      - homepage.icon=sonarr
+      - homepage.description=TV show management and downloads
+      - homepage.href=https://sonarr.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.sonarr-bypass.entrypoints=https
       - traefik.http.routers.sonarr-bypass.rule=Host(`sonarr.${DOMAIN_NAME}`) && (Header(`X-Api-Key`,
@@ -184,6 +199,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.sonarr4k-rtr.service=sonarr4k-svc
       - traefik.http.services.sonarr4k-svc.loadbalancer.server.port=8989
+      - homepage.group=Media
+      - homepage.name=Sonarr 4K
+      - homepage.icon=sonarr
+      - homepage.description=4K TV show management and downloads
+      - homepage.href=https://sonarr4k.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.sonarr4k-bypass.entrypoints=https
       - traefik.http.routers.sonarr4k-bypass.rule=Host(`sonarr4k.${DOMAIN_NAME}`)
@@ -220,6 +240,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.bazarr-rtr.service=bazarr-svc
       - traefik.http.services.bazarr-svc.loadbalancer.server.port=6767
+      - homepage.group=Media
+      - homepage.name=Bazarr
+      - homepage.icon=bazarr
+      - homepage.description=Subtitle management
+      - homepage.href=https://bazarr.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.bazarr-bypass.entrypoints=https
       - traefik.http.routers.bazarr-bypass.priority=20
@@ -254,6 +279,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.bazarr4k-rtr.service=bazarr4k-svc
       - traefik.http.services.bazarr4k-svc.loadbalancer.server.port=6767
+      - homepage.group=Media
+      - homepage.name=Bazarr 4K
+      - homepage.icon=bazarr
+      - homepage.description=4K subtitle management
+      - homepage.href=https://bazarr4k.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.bazarr4k-bypass.entrypoints=https
       - traefik.http.routers.bazarr4k-bypass.priority=20
@@ -287,6 +317,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.dispatcharr-rtr.service=dispatcharr-svc
       - traefik.http.services.dispatcharr-svc.loadbalancer.server.port=9191
+      - homepage.group=Media
+      - homepage.name=Dispatcharr
+      - homepage.icon=dispatcharr
+      - homepage.description=Media automation and routing
+      - homepage.href=https://dispatcharr.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.dispatcharr-bypass.entrypoints=https
       # - "traefik.http.routers.dispatcharr-bypass.rule=Host(`dispatcharr.${DOMAIN_NAME}`) && (Header(`X-Api-Key`, `$dispatcharr_API_KEY`) || Query(`apikey`, `$dispatcharr_API_KEY`))"

@@ -21,6 +21,11 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=true
+      - homepage.group=Media
+      - homepage.name=Overseerr
+      - homepage.icon=overseerr
+      - homepage.description=Media request management
+      - homepage.href=https://overseerr.${DOMAIN_NAME}
       ## HTTP Routers
       - traefik.http.routers.overseerr-rtr.entrypoints=https
       - traefik.http.routers.overseerr-rtr.rule=Host(`overseerr.${DOMAIN_NAME}`) ||

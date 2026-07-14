@@ -24,6 +24,11 @@ services:
       - $DOCKER_DIR/data/crowdsec:/var/lib/crowdsec/data
       - $DOCKER_DIR/data/crowdsec/config:/etc/crowdsec
     restart: unless-stopped
+    labels:
+      - homepage.group=Security
+      - homepage.name=CrowdSec
+      - homepage.icon=crowdsec
+      - homepage.description=Security engine and bouncer
     healthcheck:
       test:
         - CMD-SHELL
@@ -51,6 +56,11 @@ services:
     labels:
       # Traefik Labels
       - traefik.enable=true
+      - homepage.group=Security
+      - homepage.name=Pocket ID
+      - homepage.icon=pocket-id
+      - homepage.description=OIDC and authentication provider
+      - homepage.href=https://auth.${DOMAIN_NAME}
       # HTTP Routers
       - traefik.http.routers.pocketid-rtr.entrypoints=https
       - traefik.http.routers.pocketid-rtr.rule=Host(`auth.${DOMAIN_NAME}`)

@@ -64,6 +64,12 @@ services:
       - $DOCKER_DIR/data/komodo-core:/repo-cache
       - $DOCKER_DIR/data/komodo-core/keys:/config/keys
       - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - homepage.group=Development
+      - homepage.name=Komodo
+      - homepage.icon=komodo
+      - homepage.description=Self-hosted automation and management
+      - homepage.href=https://komodo.${DOMAIN_NAME}
     healthcheck:
       test: [CMD-SHELL, curl -f http://127.0.0.1:9120/ || exit 1]
       interval: 30s

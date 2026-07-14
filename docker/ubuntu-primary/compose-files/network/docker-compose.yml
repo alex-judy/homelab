@@ -37,6 +37,11 @@ services:
       - SYSTEM=0
       - TASKS=1  #
       - VOLUMES=1
+    labels:
+      - homepage.group=Network
+      - homepage.name=Socket Proxy
+      - homepage.icon=docker
+      - homepage.description=Docker socket proxy
     healthcheck:
       test: wget --spider --tries=1 http://localhost:2375/_ping || exit 1
       interval: 29s
@@ -51,6 +56,11 @@ services:
     networks:
       cloudflared:
     command: tunnel --no-autoupdate run
+    labels:
+      - homepage.group=Network
+      - homepage.name=Cloudflare Tunnel
+      - homepage.icon=cloudflare
+      - homepage.description=Cloudflare tunnel ingress
     healthcheck:
       test:
         - CMD
@@ -144,6 +154,11 @@ services:
       - traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file
       ## Services - API
       - traefik.http.routers.traefik-rtr.service=api@internal
+      - homepage.group=Network
+      - homepage.name=Traefik
+      - homepage.icon=traefik
+      - homepage.description=Reverse proxy and ingress
+      - homepage.href=https://traefik.${DOMAIN_NAME}
     healthcheck:
       test: ping -c 1 www.google.com || exit 1
       interval: 30s

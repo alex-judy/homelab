@@ -27,6 +27,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.vscode-rtr.service=vscode-svc
       - traefik.http.services.vscode-svc.loadbalancer.server.port=8443
+      - homepage.group=Management
+      - homepage.name=Code Server
+      - homepage.icon=vscode
+      - homepage.description=VS Code in the browser
+      - homepage.href=https://code.${DOMAIN_NAME}
     healthcheck:
       test: [CMD-SHELL, pgrep -f code-server >/dev/null || exit 1]
       interval: 30s
@@ -59,6 +64,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.syncthing-rtr.service=syncthing-svc
       - traefik.http.services.syncthing-svc.loadbalancer.server.port=8384
+      - homepage.group=Management
+      - homepage.name=Syncthing
+      - homepage.icon=syncthing
+      - homepage.description=Secure file sync and backup
+      - homepage.href=https://syncthing.${DOMAIN_NAME}
     healthcheck:
       test: [CMD-SHELL, curl -f http://127.0.0.1:8384/ || exit 1]
       interval: 30s
@@ -107,6 +117,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.paperless-rtr.service=paperless-svc
       - traefik.http.services.paperless-svc.loadbalancer.server.port=8000
+      - homepage.group=Management
+      - homepage.name=Paperless
+      - homepage.icon=paperless-ngx
+      - homepage.description=Document management and OCR
+      - homepage.href=https://paperless.${DOMAIN_NAME}
     healthcheck:
       test: [CMD-SHELL, curl -f http://127.0.0.1:8000/ || exit 1]
       interval: 30s
@@ -150,6 +165,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.mealie-rtr.service=mealie-svc
       - traefik.http.services.mealie-svc.loadbalancer.server.port=9000
+      - homepage.group=Management
+      - homepage.name=Mealie
+      - homepage.icon=mealie
+      - homepage.description=Recipe manager and meal planning
+      - homepage.href=https://mealie.${DOMAIN_NAME}
     healthcheck:
       test: [CMD-SHELL, curl -f http://127.0.0.1:9000/ || exit 1]
       interval: 30s

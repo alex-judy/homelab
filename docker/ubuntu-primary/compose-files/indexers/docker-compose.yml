@@ -13,6 +13,11 @@ services:
     volumes: [$DOCKER_DIR/data/prowlarr:/config]
     labels:
       - traefik.enable=true
+      - homepage.group=Media
+      - homepage.name=Prowlarr
+      - homepage.icon=prowlarr
+      - homepage.description=Indexer management for usenet and torrents
+      - homepage.href=https://prowlarr.${DOMAIN_NAME}
       ## HTTP Routers
       - traefik.http.routers.prowlarr-rtr.entrypoints=https
       - traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.${DOMAIN_NAME}`)
@@ -22,6 +27,13 @@ services:
       ## HTTP Services
       - traefik.http.routers.prowlarr-rtr.service=prowlarr-svc
       - traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696
+      ## SignalR bypass router — negotiate/websocket traffic can't carry the oauth session cookie
+      - traefik.http.routers.prowlarr-signalr-rtr.entrypoints=https
+      - traefik.http.routers.prowlarr-signalr-rtr.rule=Host(`prowlarr.${DOMAIN_NAME}`) && PathPrefix(`/signalr`)
+      - traefik.http.routers.prowlarr-signalr-rtr.tls=true
+      - traefik.http.routers.prowlarr-signalr-rtr.priority=100
+      - traefik.http.routers.prowlarr-signalr-rtr.middlewares=chain-noauth@file
+      - traefik.http.routers.prowlarr-signalr-rtr.service=prowlarr-svc
     healthcheck:
       test: [CMD, curl, -f, http://localhost:9696/ping]
       interval: 1m00s
@@ -39,6 +51,11 @@ services:
       - TZ
     ports: [8191:8191]
     restart: unless-stopped
+    labels:
+      - homepage.group=Media
+      - homepage.name=FlareSolverr
+      - homepage.icon=flaresolverr
+      - homepage.description=Captcha and anti-bot resolver
     healthcheck:
       test: [CMD, curl, -f, http://127.0.0.1:8191]
       interval: 30s

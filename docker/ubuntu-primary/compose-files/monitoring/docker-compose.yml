@@ -41,6 +41,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.dozzle-rtr.service=dozzle-svc
       - traefik.http.services.dozzle-svc.loadbalancer.server.port=8080
+      - homepage.group=Monitoring
+      - homepage.name=Dozzle
+      - homepage.icon=dozzle
+      - homepage.description=Container log viewer
+      - homepage.href=https://dozzle.${DOMAIN_NAME}
     healthcheck:
       test: [CMD, /dozzle, healthcheck]
       interval: 3s
@@ -80,6 +85,11 @@ services:
       ## HTTP Services
       - traefik.http.routers.tracearr-rtr.service=tracearr-svc
       - traefik.http.services.tracearr-svc.loadbalancer.server.port=3000
+      - homepage.group=Monitoring
+      - homepage.name=Tracearr
+      - homepage.icon=tracearr
+      - homepage.description=Media request trace and monitoring
+      - homepage.href=https://tracearr.${DOMAIN_NAME}
     healthcheck:
       test: [CMD-SHELL, "ps -ef | grep -v grep | grep -q '[n]ode' || exit 1"]
       interval: 30s

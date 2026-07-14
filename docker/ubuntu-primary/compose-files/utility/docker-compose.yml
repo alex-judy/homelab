@@ -11,6 +11,11 @@ services:
     ports: [3010:3000, 3011:3001]
     labels:
       - traefik.enable=true
+      - homepage.group=Utilities
+      - homepage.name=Speedtest
+      - homepage.icon=speedtest
+      - homepage.description=Bandwidth testing utility
+      - homepage.href=https://speedtest.${DOMAIN_NAME}
       # HTTP Routers
       - traefik.http.routers.speedtest-rtr.entrypoints=https
       - traefik.http.routers.speedtest-rtr.rule=Host(`speedtest.${DOMAIN_NAME}`)

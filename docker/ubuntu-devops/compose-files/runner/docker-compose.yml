@@ -29,6 +29,11 @@ services:
     volumes: [$DOCKER_DIR/data/runner:/data]
     network_mode: host
     command: [forgejo-runner, -c, /data/runner-config.yml, daemon]
+    labels:
+      - homepage.group=Development
+      - homepage.name=Forgejo Runner
+      - homepage.icon=forgejo
+      - homepage.description=Action runner for Forgejo
     healthcheck:
       test: [CMD-SHELL, pgrep -f forgejo-runner >/dev/null || exit 1]
       interval: 30s
