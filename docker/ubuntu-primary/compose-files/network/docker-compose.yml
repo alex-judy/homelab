@@ -49,7 +49,7 @@ services:
       retries: 3
       start_period: 21s
   cf-tunnel:
-    image: cloudflare/cloudflared:2026.7.1
+    image: cloudflare/cloudflared:2026.7.2
     container_name: cf-tunnel
     restart: unless-stopped
     environment: ['TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}']
@@ -75,7 +75,7 @@ services:
       start_period: 30s
   traefik:
     container_name: traefik
-    image: traefik:v3.7.7
+    image: traefik:v3.7.8
     # profiles:
     #   - traefik-network
     restart: always
