@@ -100,11 +100,20 @@
         - item.failed is defined and item.failed
       tags: [install, update, nfs]
 
-    - name: Add Plex repository key
+    - name: Download Plex repository key
       ansible.builtin.get_url:
         url: https://downloads.plex.tv/plex-keys/PlexSign.key
-        dest: /usr/share/keyrings/plexmediaserver.gpg
+        dest: /tmp/plexsign.key
         mode: '0644'
+      tags: [install, update]
+
+    - name: Dearmor Plex repository key
+      ansible.builtin.shell: |
+        set -o pipefail
+        gpg --dearmor < /tmp/plexsign.key > /usr/share/keyrings/plexmediaserver.gpg
+      args:
+        executable: /bin/bash
+        creates: /usr/share/keyrings/plexmediaserver.gpg
       tags: [install, update]
 
     - name: Add Plex repository
