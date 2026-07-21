@@ -295,7 +295,7 @@ services:
       retries: 3
       start_period: 10s
   dispatcharr:
-    image: ghcr.io/dispatcharr/dispatcharr:0.27.2
+    image: ghcr.io/dispatcharr/dispatcharr:0.28.1
     container_name: dispatcharr
     networks: [traefik_proxy]
     environment:
