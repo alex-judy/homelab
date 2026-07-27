@@ -88,7 +88,7 @@ services:
       retries: 3
       start_period: 10s
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.3
     container_name: paperless
     networks: [traefik_proxy, socket_proxy]
     environment:
