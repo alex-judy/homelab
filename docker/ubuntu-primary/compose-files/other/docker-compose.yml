@@ -88,7 +88,7 @@ services:
       retries: 3
       start_period: 10s
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.3
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.4
     container_name: paperless
     networks: [traefik_proxy, socket_proxy]
     environment:
@@ -129,7 +129,7 @@ services:
       retries: 3
       start_period: 10s
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.21.0
+    image: ghcr.io/mealie-recipes/mealie:v3.22.0
     container_name: mealie
     networks: [traefik_proxy, socket_proxy]
     ports: [9925:9000]
