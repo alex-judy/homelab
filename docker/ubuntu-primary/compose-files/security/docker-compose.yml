@@ -38,7 +38,7 @@ services:
       retries: 3
       start_period: 30s
   pocket-id:
-    image: ghcr.io/pocket-id/pocket-id:v2.11.0
+    image: ghcr.io/pocket-id/pocket-id:v2.12.0
     container_name: pocket-id
     restart: unless-stopped
     networks: [traefik_proxy, socket_proxy]

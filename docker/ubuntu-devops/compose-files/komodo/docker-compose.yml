@@ -42,7 +42,7 @@ services:
     environment:
       FERRETDB_POSTGRESQL_URL: postgres://${KOMODO_DATABASE_USERNAME}:${KOMODO_DATABASE_PASSWORD}@komodo-postgres:5432/postgres?sslmode=disable
   komodo-core:
-    image: ghcr.io/moghtech/komodo-core:2.2.0
+    image: ghcr.io/moghtech/komodo-core:2.3.0
     container_name: komodo-core
     init: true
     restart: unless-stopped
@@ -77,7 +77,7 @@ services:
       retries: 3
       start_period: 10s
   komodo-periphery:
-    image: ghcr.io/moghtech/komodo-periphery:2.2.0
+    image: ghcr.io/moghtech/komodo-periphery:2.3.0
     container_name: komodo-periphery
     restart: unless-stopped
     depends_on: [komodo-core]
