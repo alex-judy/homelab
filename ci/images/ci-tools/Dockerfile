@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-ARG HADOLINT_VERSION=2.14.0
+ARG HADOLINT_VERSION=2.15.1
 RUN curl -fsSL -o hadolint \
     "https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64" \
     && chmod +x hadolint
