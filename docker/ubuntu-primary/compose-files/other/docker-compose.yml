@@ -5,7 +5,7 @@ services:
   ## VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
-    image: linuxserver/code-server:4.130.0
+    image: linuxserver/code-server:4.131.0
     container_name: vscode
     restart: always
     networks: [traefik_proxy]
@@ -77,7 +77,7 @@ services:
       start_period: 10s
   paperless-redis:
     container_name: paperless-redis
-    image: redis:8.8.1-alpine
+    image: redis:8.10.0-alpine
     restart: unless-stopped
     networks: [socket_proxy]
     volumes: [$DOCKER_DIR/data/paperless-redis:/data]
@@ -88,7 +88,7 @@ services:
       retries: 3
       start_period: 10s
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.4
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.5
     container_name: paperless
     networks: [traefik_proxy, socket_proxy]
     environment:
