@@ -12,6 +12,7 @@ services:
       PERIPHERY_CORE_PUBLIC_KEYS: ${KOMODO_CORE_PUBLIC_KEYS}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc
       - $DOCKER_DIR/data/komodo-periphery:/etc/komodo
     healthcheck:
       test: [CMD-SHELL, grep -q periphery /proc/1/comm]
