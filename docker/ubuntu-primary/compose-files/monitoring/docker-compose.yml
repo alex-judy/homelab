@@ -5,7 +5,7 @@ services:
     container_name: komodo-periphery
     restart: unless-stopped
     environment:
-      PERIPHERY_CORE_ADDRESS: https://komodo.louhome.xyz
+      PERIPHERY_CORE_ADDRESS: http://10.0.10.60:9120
       PERIPHERY_ROOT_DIRECTORY: /etc/komodo
       PERIPHERY_CONNECT_AS: vali
       PERIPHERY_ONBOARDING_KEY: ${KOMODO_ONBOARDING_KEY}

@@ -100,6 +100,7 @@ services:
       - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASS}
       - PAPERLESS_REDIS=redis://paperless-redis:6379
       - PAPERLESS_CONSUMER_POLLING=60
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
     volumes:
       - $DOCKER_DIR/data/paperless:/usr/src/paperless/data
       - $DOCKER_DIR/data/paperless/media:/usr/src/paperless/media
