@@ -130,7 +130,7 @@ services:
       retries: 3
       start_period: 10s
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.22.0
+    image: ghcr.io/mealie-recipes/mealie:v3.23.1
     container_name: mealie
     networks: [traefik_proxy, socket_proxy]
     ports: [9925:9000]

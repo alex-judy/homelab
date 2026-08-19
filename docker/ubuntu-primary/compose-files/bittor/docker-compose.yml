@@ -64,7 +64,7 @@ services:
       retries: 3
       start_period: 10s
   sabnzbd:
-    image: linuxserver/sabnzbd:5.1.0
+    image: linuxserver/sabnzbd:5.1.1
     restart: unless-stopped
     container_name: sabnzbd
     # network_mode: service:gluetun
