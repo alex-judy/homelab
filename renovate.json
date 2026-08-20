@@ -1,6 +1,9 @@
 {
     "extends": [
-        "config:recommended"
+        "config:recommended",
+        "schedule:automergeDaily", 
+        ":dependencyDashboard",
+        "abandonments:recommended"
     ],
     "configMigration": true,
     "timezone": "UTC",
