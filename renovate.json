@@ -93,6 +93,11 @@
             "groupName": "codeql bundle",
             "groupSlug": "codeql-bundle",
             "automerge": false
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchPackageNames": ["linuxserver/**"],
+            "allowedVersions": "!/^\\d{2}\\.(04|10)(\\.\\d+)?$/"
         }
     ]
 }
