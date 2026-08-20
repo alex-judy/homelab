@@ -70,10 +70,10 @@ services:
       - traefik.http.routers.pocketid-rtr.service=pocketid-svc
       - traefik.http.services.pocketid-svc.loadbalancer.server.port=1411
     healthcheck:
-      test: [CMD-SHELL, curl -f http://127.0.0.1:1411/ || exit 1]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "/app/pocket-id", "healthcheck"]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
       start_period: 10s
 networks:
   traefik_proxy:
