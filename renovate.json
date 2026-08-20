@@ -50,6 +50,19 @@
     ],
     "packageRules": [
         {
+            "description": "Only use canonical semantic-version tags for LinuxServer images",
+            "matchDatasources": [
+                "docker"
+            ],
+            "matchPackageNames": [
+                "linuxserver/**",
+                "lscr.io/linuxserver/**",
+                "ghcr.io/linuxserver/**"
+            ],
+            "allowedVersions": "/^\\d+\\.\\d+\\.\\d+$/"
+        },
+        {
+            "description": "Group all Docker container updates",
             "matchDatasources": [
                 "docker"
             ],
@@ -60,6 +73,7 @@
             "groupSlug": "docker-container-updates"
         },
         {
+            "description": "Automatically merge Docker minor, patch, and digest updates",
             "matchDatasources": [
                 "docker"
             ],
@@ -73,6 +87,7 @@
             "platformAutomerge": true
         },
         {
+            "description": "Keep Docker major updates separate and require manual review",
             "matchDatasources": [
                 "docker"
             ],
@@ -84,6 +99,7 @@
             "automerge": false
         },
         {
+            "description": "Group CodeQL bundle updates",
             "matchDatasources": [
                 "github-releases"
             ],
@@ -93,11 +109,6 @@
             "groupName": "codeql bundle",
             "groupSlug": "codeql-bundle",
             "automerge": false
-        },
-        {
-            "matchDatasources": ["docker"],
-            "matchPackageNames": ["linuxserver/**"],
-            "allowedVersions": "!/^\\d{2}\\.(04|10)(\\.\\d+)?$/"
         }
     ]
 }
