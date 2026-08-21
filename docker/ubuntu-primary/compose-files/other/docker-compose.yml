@@ -77,7 +77,7 @@ services:
       start_period: 10s
   paperless-redis:
     container_name: paperless-redis
-    image: redis:8.10.0-alpine
+    image: redis:8.10.1-alpine
     restart: unless-stopped
     networks: [socket_proxy]
     volumes: [$DOCKER_DIR/data/paperless-redis:/data]
