@@ -53,16 +53,14 @@
     ],
     "packageRules": [
         {
-            "description": "Only use canonical semantic-version tags for LinuxServer images",
-            "matchDatasources": [
-                "docker"
-            ],
+            "description": "Exclude LinuxServer legacy Ubuntu-base tags (YY.04/YY.10) for image consistency",
+            "matchDatasources": ["docker"],
             "matchPackageNames": [
                 "linuxserver/**",
                 "lscr.io/linuxserver/**",
                 "ghcr.io/linuxserver/**"
             ],
-            "allowedVersions": "/^\\d+\\.\\d+\\.\\d+$/"
+            "allowedVersions": "!/^\\d{2}\\.(04|10)(\\.\\d+)?$/"
         },
         {
             "description": "Group all Docker container updates",
