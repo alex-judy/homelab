@@ -5,7 +5,7 @@ services:
   ## Prowlarr - Indexer for usenet and torrents
   prowlarr:
     container_name: prowlarr
-    image: linuxserver/prowlarr:2.5.2
+    image: lscr.io/linuxserver/prowlarr:2.5.2
     networks: [traefik_proxy]
     restart: always
     ports: [9696:9696]
