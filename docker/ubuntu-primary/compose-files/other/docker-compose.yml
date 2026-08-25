@@ -5,7 +5,7 @@ services:
   ## VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
-    image: lscr.io/linuxserver/code-server:4.133.0
+    image: lscr.io/linuxserver/code-server:4.134.0
     container_name: vscode
     restart: always
     networks: [traefik_proxy]
@@ -130,7 +130,7 @@ services:
       retries: 3
       start_period: 10s
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.23.1
+    image: ghcr.io/mealie-recipes/mealie:v3.24.0
     container_name: mealie
     networks: [traefik_proxy, socket_proxy]
     ports: [9925:9000]
