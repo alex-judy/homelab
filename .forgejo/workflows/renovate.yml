@@ -1,9 +1,8 @@
 ---
 name: Renovate
-
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: 0 4 * * *
   workflow_dispatch: {}
 jobs:
   renovate:
@@ -16,7 +15,7 @@ jobs:
           RENOVATE_PLATFORM: forgejo
           RENOVATE_ENDPOINT: https://forgejo.louhome.xyz/api/v1/
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
-          RENOVATE_AUTODISCOVER: "false"
+          RENOVATE_AUTODISCOVER: 'false'
           RENOVATE_REPOSITORIES: '["lou-home/homelab"]'
           GITHUB_COM_TOKEN: ${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}
           RENOVATE_HOST_RULES: '[{"matchHost":"lscr.io","hostType":"docker","token":"${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}"}]'

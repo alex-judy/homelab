@@ -1,20 +1,13 @@
 ---
-
 services:
-
   gluetun:
     image: qmcgaw/gluetun:v3.41.3
     container_name: vpn
     restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    volumes:
-      - $DOCKER_DIR/data/gluetun:/gluetun
-    networks:
-      - socket_proxy
-      - traefik_proxy
+    cap_add: [NET_ADMIN]
+    devices: [/dev/net/tun:/dev/net/tun]
+    volumes: [$DOCKER_DIR/data/gluetun:/gluetun]
+    networks: [socket_proxy, traefik_proxy]
     environment:
       - VPN_SERVICE_PROVIDER=private internet access
       - OPENVPN_USER=${PIA_USER}
@@ -39,17 +32,16 @@ services:
       - traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc
       - traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8085
 
-      # ## SABnzbd HTTP Router
+      #  ## SABnzbd HTTP Router
       # - traefik.http.routers.sabnzbd-rtr.entrypoints=https
       # - traefik.http.routers.sabnzbd-rtr.rule=Host(`sab.${DOMAIN_NAME}`)
 
-      # ## SABnzbd Middlewares
+      #  ## SABnzbd Middlewares
       # - traefik.http.routers.sabnzbd-rtr.middlewares=rate-limit@file,chain-oauth@file
 
-      # ## SABnzbd HTTP Service
+      #  ## SABnzbd HTTP Service
       # - traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc
       # - traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080
-
   qbittorrent:
     image: qbittorrentofficial/qbittorrent-nox:5.2.3-1
     restart: unless-stopped
@@ -68,31 +60,21 @@ services:
       - $DOWNLOADS_DIR/torrents:/downloads/torrents
     stop_grace_period: 30m
     healthcheck:
-      test:
-        - CMD-SHELL
-        - curl -f http://127.0.0.1:8085/ || exit 1
+      test: [CMD-SHELL, curl -f http://127.0.0.1:8085/ || exit 1]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:5.1.1
     restart: unless-stopped
     container_name: sabnzbd
-    environment:
-      - PUID
-      - PGID
-      - TZ
-      - UMASK=002
-    ports:
-      - 8087:8080
+    environment: [PUID, PGID, TZ, UMASK=002]
+    ports: [8087:8080]
     volumes:
       - $DOCKER_DIR/data/sabnzbd:/config
       - $DOWNLOADS_DIR/usenet:/downloads
-    networks:
-      - socket_proxy
-      - traefik_proxy
+    networks: [socket_proxy, traefik_proxy]
     labels:
       - traefik.enable=true
 
@@ -107,17 +89,13 @@ services:
       - traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc
       - traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080
     healthcheck:
-      test:
-        - CMD-SHELL
-        - curl -f http://127.0.0.1:8080/ || exit 1
+      test: [CMD-SHELL, curl -f http://127.0.0.1:8080/ || exit 1]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
 networks:
   traefik_proxy:
     external: true
-
   socket_proxy:
     external: true

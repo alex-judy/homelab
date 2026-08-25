@@ -1,36 +1,28 @@
 ---
 # .forgejo/workflows/build-ci-image.yml
 name: Build CI Tools Image
-
 on:
   schedule:
-    - cron: "0 1 * * *"
+    - cron: 0 1 * * *
   workflow_dispatch: {}
   push:
-    paths:
-      - "ci/images/ci-tools/**"
-    branches:
-      - main
+    paths: [ci/images/ci-tools/**]
+    branches: [main]
   pull_request:
-    paths:
-      - "ci/images/ci-tools/**"
+    paths: [ci/images/ci-tools/**]
     types: [opened, reopened, synchronize]
   workflow_run:
-    workflows: ["Build CI Tools Image"]
-    types:
-      - completed
-
+    workflows: [Build CI Tools Image]
+    types: [completed]
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
       DOCKER_HOST: tcp://172.17.0.1:2375
-      DOCKER_TLS_VERIFY: ""
-
+      DOCKER_TLS_VERIFY: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Login to Forgejo registry
         env:
           DOCKER_CONFIG: ${{ github.workspace }}/.docker
@@ -38,20 +30,16 @@ jobs:
           echo "${{ secrets.FORGEJO_AUTOMATION_SVC_ACCT_TOKEN }}" | docker login registry.louhome.xyz \
             --username ${{ vars.FORGEJO_AUTOMATION_SVC_ACCT_NAME }} \
             --password-stdin
-
       - name: Build and push
         env:
           DOCKER_CONFIG: ${{ github.workspace }}/.docker
         run: |
           docker buildx rm workflow-builder || true
-
           docker buildx create --name workflow-builder \
             --use \
             --driver docker-container \
             --driver-opt "network=host"
-
           docker buildx inspect --bootstrap
-
           docker buildx build \
             --builder workflow-builder \
             --push \
@@ -60,7 +48,6 @@ jobs:
             -t registry.louhome.xyz/lou-home/ci-tools:latest \
             -t registry.louhome.xyz/lou-home/ci-tools:${{ github.sha }} \
             ci/images/ci-tools/
-
       - name: Prune Buildx and Build Cache
         if: always()
         run: |-

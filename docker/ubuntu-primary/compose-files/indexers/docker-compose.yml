@@ -29,7 +29,8 @@ services:
       - traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696
       ## SignalR bypass router — negotiate/websocket traffic can't carry the oauth session cookie
       - traefik.http.routers.prowlarr-signalr-rtr.entrypoints=https
-      - traefik.http.routers.prowlarr-signalr-rtr.rule=Host(`prowlarr.${DOMAIN_NAME}`) && PathPrefix(`/signalr`)
+      - traefik.http.routers.prowlarr-signalr-rtr.rule=Host(`prowlarr.${DOMAIN_NAME}`)
+        && PathPrefix(`/signalr`)
       - traefik.http.routers.prowlarr-signalr-rtr.tls=true
       - traefik.http.routers.prowlarr-signalr-rtr.priority=100
       - traefik.http.routers.prowlarr-signalr-rtr.middlewares=chain-noauth@file

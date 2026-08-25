@@ -1,14 +1,10 @@
 ---
 name: Deploy Primary Stacks
-
 on:
   workflow_dispatch: {}
   push:
-    paths:
-      - "docker/ubuntu-primary/**"
-    branches:
-      - main
-
+    paths: [docker/ubuntu-primary/**]
+    branches: [main]
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,7 +12,6 @@ jobs:
       image: registry.louhome.xyz/lou-home/ci-tools:latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.FORGEJO_RUNNER_SSH_KEY }}
@@ -25,17 +20,15 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/homelab-runner
           chmod 600 ~/.ssh/homelab-runner
           ssh-keyscan -H 10.0.10.30 >> ~/.ssh/known_hosts
-
       - name: Install Ansible dependencies
         run: ansible-galaxy install -r ansible/requirements.yml
-
       - name: Run deploy playbook
         env:
-          ANSIBLE_HOST_KEY_CHECKING: "false"
+          ANSIBLE_HOST_KEY_CHECKING: 'false'
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_UBUNTU_PRIMARY_TOKEN }}
           DOCKER_DIR: ${{ vars.DOCKER_DIR }}
           DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}
-        run: |
+        run: |-
           ansible-playbook ansible/playbooks/vm-ubuntu-primary.yml \
             -e doppler_token=$DOPPLER_TOKEN \
             -e docker_dir=$DOCKER_DIR \

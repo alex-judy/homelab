@@ -324,7 +324,6 @@ services:
       - homepage.href=https://dispatcharr.${DOMAIN_NAME}
       ## API Forward Auth Bypass
       - traefik.http.routers.dispatcharr-bypass.entrypoints=https
-      # - "traefik.http.routers.dispatcharr-bypass.rule=Host(`dispatcharr.${DOMAIN_NAME}`) && (Header(`X-Api-Key`, `$dispatcharr_API_KEY`) || Query(`apikey`, `$dispatcharr_API_KEY`))"
       - traefik.http.routers.dispatcharr-bypass.priority=20
       - traefik.http.routers.dispatcharr-bypass.service=dispatcharr-svc
     healthcheck:
