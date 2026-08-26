@@ -18,5 +18,5 @@ jobs:
           RENOVATE_AUTODISCOVER: 'false'
           RENOVATE_REPOSITORIES: '["lou-home/homelab"]'
           GITHUB_COM_TOKEN: ${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}
-          RENOVATE_HOST_RULES: '[{"matchHost":"lscr.io","hostType":"docker","token":"${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}"}]'
+          RENOVATE_HOST_RULES: '[{"matchHost":"ghcr.io","hostType":"docker","token":"${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}"}]'
         run: renovate
