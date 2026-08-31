@@ -21,7 +21,7 @@ services:
       retries: 3
       start_period: 15s
   dozzle:
-    image: amir20/dozzle:v10.7
+    image: amir20/dozzle:v10.8
     container_name: dozzle
     restart: always
     networks: [traefik_proxy, socket_proxy]
@@ -54,7 +54,7 @@ services:
       retries: 5
       start_period: 30s
   tracearr:
-    image: ghcr.io/connorgallopo/tracearr:2.2.2
+    image: ghcr.io/connorgallopo/tracearr:2.2.3
     container_name: tracearr
     ports: [3001:3000]
     environment:
