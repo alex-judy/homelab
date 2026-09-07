@@ -21,7 +21,7 @@ services:
       retries: 3
       start_period: 15s
   dozzle:
-    image: amir20/dozzle:v10.9
+    image: amir20/dozzle:v10.10
     container_name: dozzle
     restart: always
     networks: [traefik_proxy, socket_proxy]
