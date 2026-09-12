@@ -42,7 +42,7 @@ services:
       retries: 3
       start_period: 40s
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:v3.5.0
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
     container_name: flaresolverr
     networks: [traefik_proxy]
     environment:
