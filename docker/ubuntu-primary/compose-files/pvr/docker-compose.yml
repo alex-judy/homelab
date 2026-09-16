@@ -217,7 +217,7 @@ services:
       retries: 3
       start_period: 10s
   bazarr:
-    image: lscr.io/linuxserver/bazarr:1.6.0
+    image: lscr.io/linuxserver/bazarr:1.6.1
     container_name: bazarr
     networks:
       traefik_proxy:
@@ -256,7 +256,7 @@ services:
       retries: 3
       start_period: 10s
   bazarr4k:
-    image: lscr.io/linuxserver/bazarr:1.6.0
+    image: lscr.io/linuxserver/bazarr:1.6.1
     container_name: bazarr4k
     networks:
       traefik_proxy:
