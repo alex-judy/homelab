@@ -54,7 +54,7 @@ services:
       retries: 5
       start_period: 30s
   tracearr:
-    image: ghcr.io/connorgallopo/tracearr:2.3.0
+    image: ghcr.io/connorgallopo/tracearr:2.4.1
     container_name: tracearr
     ports: [3001:3000]
     environment:
@@ -101,7 +101,7 @@ services:
     # TimescaleDB HA with PostgreSQL 18 and Toolkit
     # PostgreSQL 18 features: AIO for 3x I/O performance, UUIDv7, temporal constraints
     # Note: ~1.5GB image size (includes Patroni, backup tools, many extensions)
-    image: timescale/timescaledb:2.30.0-pg18
+    image: timescale/timescaledb:2.30.1-pg18
     container_name: tracearr-db
     shm_size: 512mb  # Required for PostgreSQL shared memory (increase for large imports)
     ulimits:
@@ -125,7 +125,7 @@ services:
     restart: unless-stopped
     networks: [traefik_proxy]
   tracearr-redis:
-    image: redis:8.10.1-alpine
+    image: redis:8.10.2-alpine
     container_name: tracearr-redis
     command: redis-server --appendonly yes
     volumes: [$DOCKER_DIR/data/tracearr-redis:/data]
