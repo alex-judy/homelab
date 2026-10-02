@@ -8,15 +8,17 @@ jobs:
   renovate:
     runs-on: ubuntu-latest
     container:
-      image: renovate/renovate:latest
+      image: renovate/renovate:41
     steps:
       - name: Run Renovate
         env:
           RENOVATE_PLATFORM: forgejo
+          RENOVATE_GIT_AUTHOR: 'Renovate Bot <automation@louhome.xyz>'
           RENOVATE_ENDPOINT: https://forgejo.louhome.xyz/api/v1/
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
           RENOVATE_AUTODISCOVER: 'false'
           RENOVATE_REPOSITORIES: '["lou-home/homelab"]'
           GITHUB_COM_TOKEN: ${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}
-          RENOVATE_HOST_RULES: '[{"matchHost":"ghcr.io","hostType":"docker","token":"${{ secrets.PUBLIC_RELEASE_GITHUB_ACCESS }}"}]'
+          RENOVATE_HOST_RULES: '[{"matchHost":"ghcr.io","hostType":"docker","username":"${{ vars.GH_USER }}","password":"${{ secrets.GHCR_READ_PAT }}"},{"matchHost":"docker.io","hostType":"docker","username":"${{ vars.DOCKERHUB_USER }}","password":"${{ secrets.DOCKERHUB_TOKEN }}"},{"matchHost":"hub.docker.com","hostType":"docker","username":"${{ vars.DOCKERHUB_USER }}","password":"${{ secrets.DOCKERHUB_TOKEN }}"}]'
+          LOG_LEVEL: debug
         run: renovate
