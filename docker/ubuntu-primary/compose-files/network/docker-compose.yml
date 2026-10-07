@@ -75,7 +75,7 @@ services:
       start_period: 30s
   traefik:
     container_name: traefik
-    image: traefik:v3.7.13
+    image: traefik:v3.7.14
     # profiles:
     #   - traefik-network
     restart: always
