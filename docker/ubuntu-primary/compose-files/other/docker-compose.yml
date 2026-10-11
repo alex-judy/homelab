@@ -5,7 +5,7 @@ services:
   ## VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
-    image: lscr.io/linuxserver/code-server:4.140.0
+    image: lscr.io/linuxserver/code-server:4.141.0
     container_name: vscode
     restart: always
     networks: [traefik_proxy]
@@ -40,7 +40,7 @@ services:
       start_period: 10s
   syncthing:
     container_name: syncthing
-    image: lscr.io/linuxserver/syncthing:2.1.5
+    image: lscr.io/linuxserver/syncthing:2.1.6
     restart: always
     networks: [traefik_proxy, socket_proxy]
     ports:
