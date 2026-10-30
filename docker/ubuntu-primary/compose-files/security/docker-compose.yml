@@ -2,7 +2,7 @@
 services:
   # CrowdSec - Open-source & collaborative security IPS
   crowdsec:
-    image: crowdsecurity/crowdsec:v1.8.1
+    image: crowdsecurity/crowdsec:v1.8.2
     container_name: crowdsec
     networks: [traefik_proxy, socket_proxy]
     expose:

@@ -5,7 +5,7 @@ services:
   ## VSCode - VSCode Editing
   vscode:
     #    user: $PUID:$PGID
-    image: lscr.io/linuxserver/code-server:4.143.1
+    image: lscr.io/linuxserver/code-server:4.144.0
     container_name: vscode
     restart: always
     networks: [traefik_proxy]
@@ -88,7 +88,7 @@ services:
       retries: 3
       start_period: 10s
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:3.3.4
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.4.0
     container_name: paperless
     networks: [traefik_proxy, socket_proxy]
     environment:
